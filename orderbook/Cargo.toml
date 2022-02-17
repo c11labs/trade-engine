@@ -1,0 +1,8 @@
+[package]
+name = "orderbook"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+orderbook_derive = { version = "0.1.0", path = "../orderbook_derive" }
+anyhow = "1.0.53"
