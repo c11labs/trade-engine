@@ -1,93 +1,92 @@
-use crate::order_data::OrderData;
-use anyhow::{anyhow, Result};
-use orderbook_derive::OrderTrait;
+use crate::order_side::OrderSide;
+use anyhow::Result;
+// use orderbook_derive::OrderTrait;
 use std::fmt::Debug;
 
-trait OrderTrait {
-    fn print(&self);
-    fn increase_quantity(&mut self, quantity: u64) -> Result<()>;
-    fn decrease_quantity(&mut self, quantity: u64) -> Result<()>;
-
-    fn cancel(order_id: u64) -> Result<()> {
+pub trait OrderTrait {
+    /* fn cancel(order_id: u32) -> Result<()> {
         println!("cancel order {order_id}");
 
         Ok(())
     }
 
-    fn new(data: OrderData, price: i64, quantity: u64, is_buy_side: bool) -> Result<Order> {
+    fn new(
+        order_id: u32,
+        user_name: String,
+        security_id: u32,
+        price: f32,
+        quantity: u32,
+        side: OrderSide,
+    ) -> Result<Order> {
         Ok(Order {
-            data,
+            order_id,
+            user_name,
+            security_id,
             price,
             initial_quantity: quantity,
             current_quantity: quantity,
-            is_buy_side
+            side,
         })
     }
 
-    fn get(order_id: u64) -> Result<Order> {
+    fn get(order_id: u32) -> Result<Order> {
         Ok(Order {
-            data: OrderData {
-                order_id,
-                ..Default::default()
-            },
-            ..Default::default()
+            order_id,
+            user_name: "".to_string(),
+            security_id: 1,
+            initial_quantity: 0,
+            current_quantity: 0,
+            price: 0.0,
+            side: OrderSide::Ask,
+        })
+    } */
+}
+
+#[derive(Debug)]
+pub struct Order {
+    pub order_id: u32,
+    pub user_name: String,
+    pub security_id: u32,
+    pub initial_quantity: u32,
+    pub current_quantity: u32,
+    pub price: f32,
+    pub side: OrderSide,
+}
+
+impl Order {
+    pub fn new(
+        order_id: u32,
+        user_name: String,
+        security_id: u32,
+        price: f32,
+        quantity: u32,
+        side: OrderSide,
+    ) -> Result<Order> {
+        Ok(Order {
+            order_id,
+            user_name,
+            security_id,
+            price,
+            initial_quantity: quantity,
+            current_quantity: quantity,
+            side,
         })
     }
-}
 
-#[derive(OrderTrait, Debug, Default)]
-pub struct Order {
-    pub data: OrderData,
-    pub initial_quantity: u64,
-    pub current_quantity: u64,
-    pub price: i64,
-    pub is_buy_side: bool,
-}
-
-pub enum OrderType {
-    NewOrder {
-        data: OrderData,
-        price: i64,
-        quantity: u64,
-        is_buy_side: bool
-    },
-    ModifyOrder {
-        order_id: u64,
-        new_price: i64,
-        new_quantity: u64,
-        is_buy_side: bool,
-    },
-    CancelOrder {
-        order_id: u64,
-    },
-}
-
-impl OrderType {
-    pub fn process(&self) -> Result<()> {
-        match self {
-            OrderType::NewOrder { data, price, quantity, is_buy_side } => {
-                let data = OrderData {
-                    ..Default::default()
-                };
-                let new_order = Order::new(data, *price, *quantity, *is_buy_side);
-                println!("{new_order:?}");
-            }
-            OrderType::ModifyOrder {
-                order_id,
-                new_price,
-                new_quantity,
-                is_buy_side,
-            } => {
-                let order: Order = Order::get(*order_id)?;
-                Order::cancel(*order_id)?;
-                
-                let modified_order = Order::new(order.data, *new_price, *new_quantity, *is_buy_side);
-                println!("{modified_order:?}");
-            }
-            OrderType::CancelOrder { order_id } => {
-                Order::cancel(*order_id)?;
-            }
-        }
+    pub fn get(order_id: u32) -> Result<Order> {
+        Ok(Order {
+            order_id,
+            user_name: "".to_string(),
+            security_id: 1,
+            initial_quantity: 0,
+            current_quantity: 0,
+            price: 0.0,
+            side: OrderSide::Ask,
+        })
+    }
+    
+    pub fn cancel(order_id: u32) -> Result<()> {
+        println!("cancel order {order_id}");
 
         Ok(())
     }
