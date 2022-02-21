@@ -24,7 +24,7 @@ fn impl_order(ast: &syn::DeriveInput) -> TokenStream {
 
                 Ok(())
             }
-            
+
             fn decrease_quantity(&mut self, quantity: u64) -> Result<()> {
                 if self.current_quantity < quantity {
                     return Err(anyhow!("Not enough quantity in order id {}", self.data.order_id));
