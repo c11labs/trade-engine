@@ -23,17 +23,17 @@ impl<'a> PriceLevel<'a> {
     pub fn add(&mut self, order: &'a Order) -> Result<()> {
         self.orders.push(order);
         self.size += 1;
-        self.volume += order.current_quantity;
+        self.volume += order.quantity;
 
         Ok(())
     }
 
     pub fn remove(&mut self, order_id: u32) -> Result<()> {
         let (index, order): (usize, &Order) = self.get_order(order_id)?;
-        self.volume -= order.current_quantity;
+        self.volume -= order.quantity;
         self.size -= 1;
         self.orders.remove(index);
-        
+
         Ok(())
     }
 
