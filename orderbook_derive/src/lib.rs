@@ -15,11 +15,11 @@ fn impl_order(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl OrderTrait for #name {
-            fn print(&self) {
+            /* fn print(&self) {
                 println!("{:#?}", self);
-            }
+            } */
 
-            fn increase_quantity(&mut self, quantity: u64) -> Result<()> {
+            /* fn increase_quantity(&mut self, quantity: u64) -> Result<()> {
                 self.current_quantity += quantity;
 
                 Ok(())
@@ -32,7 +32,7 @@ fn impl_order(ast: &syn::DeriveInput) -> TokenStream {
                 self.current_quantity -= quantity;
 
                 Ok(())
-            }
+            } */
         }
     };
     gen.into()
