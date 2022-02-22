@@ -5,78 +5,12 @@ pub mod order_side;
 pub mod order_type;
 pub mod price;
 pub mod price_level;
+pub mod price_tree;
 
 use anyhow::{anyhow, Result};
 use order_side::OrderSide;
-use ordered_float::OrderedFloat;
-use price_level::PriceLevel;
-use std::collections::BTreeMap;
-
-#[derive(Debug)]
-struct BidTree<'a> {
-    tree: BTreeMap<OrderedFloat<f32>, PriceLevel<'a>>,
-    best_price: OrderedFloat<f32>,
-    worst_price: OrderedFloat<f32>,
-}
-
-impl<'a> BidTree<'a> {
-    pub fn new() -> Self {
-        Self {
-            tree: BTreeMap::new(),
-            best_price: OrderedFloat(0.0),
-            worst_price: OrderedFloat(10000000000000000.0),
-        }
-    }
-
-    pub fn add(&mut self, price: f32) -> Result<()> {
-        let limit = PriceLevel::new(price);
-        let price = OrderedFloat(price);
-        self.tree.insert(price, limit);
-
-        if self.best_price < price {
-            self.best_price = price;
-        }
-
-        if self.worst_price > price {
-            self.worst_price = price;
-        }
-
-        Ok(())
-    }
-
-    pub fn contains_price(&self, price: f32) -> bool {
-        self.tree.contains_key(&OrderedFloat(price))
-    }
-
-    pub fn price_list(&self) -> Vec<OrderedFloat<f32>> {
-        self.tree.keys().cloned().collect()
-    }
-
-    pub fn best_price(&self) -> f32 {
-        self.best_price.into_inner()
-    }
-
-    pub fn worst_price(&self) -> f32 {
-        self.worst_price.into_inner()
-    }
-}
-
-#[derive(Debug)]
-struct AskTree<'a> {
-    tree: BTreeMap<OrderedFloat<f32>, PriceLevel<'a>>,
-    best_price: f32,
-    worst_price: f32,
-}
-
-impl<'a> AskTree<'a> {
-    pub fn new() -> Self {
-        Self {
-            tree: BTreeMap::new(),
-            best_price: 0.0,
-            worst_price: 0.0,
-        }
-    }
-}
+use price_tree::{Summary, AskTree, BidTree};
+use price::{BidPrice, AskPrice};
 
 #[derive(Debug)]
 pub struct OrderBook<'a> {
@@ -99,7 +33,9 @@ impl<'a> OrderBook<'a> {
             OrderSide::Bid => {
                 self.bid.add(price)?;
             }
-            OrderSide::Ask => {}
+            OrderSide::Ask => {
+                self.ask.add(price)?;
+            }
         }
         Ok(())
     }
@@ -109,43 +45,53 @@ impl<'a> OrderBook<'a> {
             return Err(anyhow!("already contain key"));
         } else {
             self.add_price(price, OrderSide::Bid)?;
-            // self.bid.
         }
         Ok(())
     }
 
-    pub fn ask(&self, price: f32, shares: u32) -> Result<()> {
+    pub fn ask(&mut self, price: f32, shares: u32) -> Result<()> {
+        if self.ask.contains_price(price) {
+            return Err(anyhow!("already contain key"));
+        } else {
+            self.add_price(price, OrderSide::Ask)?;
+        }
         Ok(())
     }
 
-    pub fn bid_price_list(&self) -> Result<Vec<OrderedFloat<f32>>> {
-        Ok(self.bid.price_list())
+    pub fn bid_price_list(&self) -> Vec<BidPrice> {
+        self.bid.price_list()
+    }
+    
+    pub fn ask_price_list(&self) -> Vec<AskPrice> {
+        self.ask.price_list()
     }
 
-    pub fn best_bid(&self) -> Result<f32> {
-        let price = self.bid.best_price();
-        Ok(price)
+    pub fn best_bid(&self) -> f32 {
+        self.bid.best_price()
     }
 
-    pub fn worst_bid(&self) -> Result<f32> {
-        let price = self.bid.worst_price();
-        Ok(price)
+    pub fn worst_bid(&self) -> f32 {
+        self.bid.worst_price()
     }
 
-    pub fn best_ask(&self) -> Result<()> {
-        Ok(())
+    pub fn best_ask(&self) -> f32 {
+        self.ask.best_price()
     }
 
-    pub fn mid_price(&self) -> Result<()> {
-        Ok(())
+    pub fn worst_ask(&self) -> f32 {
+        self.ask.worst_price()
     }
 
-    pub fn bid_ask_spread(&self) -> Result<()> {
-        Ok(())
+    pub fn mid_price(&self) -> f32 {
+        (self.best_ask() + self.best_bid()) / 2.0
     }
 
-    pub fn market_depth(&self) -> Result<()> {
-        Ok(())
+    pub fn bid_ask_spread(&self) -> f32 {
+        self.best_ask() - self.best_bid()
+    }
+
+    pub fn market_depth(&self) -> f32 {
+        self.worst_ask() - self.worst_bid()
     }
 
     pub fn instrument_id(&self) -> u32 {
