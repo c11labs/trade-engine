@@ -1,7 +1,4 @@
-use orderbook::{
-    price::{AskPrice, BidPrice},
-    OrderBook,
-};
+use orderbook::OrderBook;
 // use orderbook::order_side::OrderSide;
 // use ordered_float::OrderedFloat;
 
@@ -26,21 +23,4 @@ fn orderbook_test() {
 
     let worst_bid = orderbook.worst_bid().unwrap();
     println!("worst bid: {worst_bid:?}");
-}
-
-#[test]
-fn bid_price_test() {
-    assert_eq!(BidPrice(0.0) > BidPrice(1.0), true);
-    assert_eq!(BidPrice(0.0) >= BidPrice(1.0), true);
-    assert_eq!(BidPrice(0.0) < BidPrice(1.0), false);
-    assert_eq!(BidPrice(0.0) <= BidPrice(1.0), false);
-    assert_eq!(BidPrice(0.0) == BidPrice(1.0), false);
-    assert_eq!(BidPrice(0.0) == BidPrice(0.0), true);
-
-    assert_eq!(AskPrice(0.0) > AskPrice(1.0), false);
-    assert_eq!(AskPrice(0.0) >= AskPrice(1.0), false);
-    assert_eq!(AskPrice(0.0) < AskPrice(1.0), true);
-    assert_eq!(AskPrice(0.0) <= AskPrice(1.0), true);
-    assert_eq!(AskPrice(0.0) == AskPrice(1.0), false);
-    assert_eq!(AskPrice(0.0) == AskPrice(0.0), true);
 }
