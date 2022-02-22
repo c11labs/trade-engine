@@ -3,34 +3,14 @@ pub mod order_action;
 pub mod order_data;
 pub mod order_side;
 pub mod order_type;
+pub mod price;
 pub mod price_level;
 
 use anyhow::{anyhow, Result};
-use price_level::PriceLevel;
 use order_side::OrderSide;
-use std::collections::BTreeMap;
 use ordered_float::OrderedFloat;
-
-// use std::cmp::Ordering;
-
-#[derive(Debug)]
-pub struct BidPrice<T>(pub T);
-
-impl<T> BidPrice<T> {
-    pub fn into_inner(self) -> T {
-        self.0
-    }
-}
-
-impl<f32> PartialEq for BidPrice<f32> {
-    fn eq(&self, other: &Self) -> bool {
-        if OrderedFloat(self.into_inner()) == OrderedFloat(other.into_inner()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-}
+use price_level::PriceLevel;
+use std::collections::BTreeMap;
 
 #[derive(Debug)]
 struct BidTree<'a> {
@@ -63,7 +43,7 @@ impl<'a> BidTree<'a> {
 
         Ok(())
     }
-    
+
     pub fn contains_price(&self, price: f32) -> bool {
         self.tree.contains_key(&OrderedFloat(price))
     }
@@ -119,9 +99,7 @@ impl<'a> OrderBook<'a> {
             OrderSide::Bid => {
                 self.bid.add(price)?;
             }
-            OrderSide::Ask => {
-
-            }
+            OrderSide::Ask => {}
         }
         Ok(())
     }
@@ -136,7 +114,7 @@ impl<'a> OrderBook<'a> {
         Ok(())
     }
 
-    pub fn ask(&self, price:f32, shares: u32) -> Result<()> {
+    pub fn ask(&self, price: f32, shares: u32) -> Result<()> {
         Ok(())
     }
 
@@ -148,7 +126,7 @@ impl<'a> OrderBook<'a> {
         let price = self.bid.best_price();
         Ok(price)
     }
-    
+
     pub fn worst_bid(&self) -> Result<f32> {
         let price = self.bid.worst_price();
         Ok(price)

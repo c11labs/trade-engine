@@ -1,5 +1,9 @@
-use orderbook::{OrderBook, BidPrice};
+use orderbook::{
+    price::{AskPrice, BidPrice},
+    OrderBook,
+};
 // use orderbook::order_side::OrderSide;
+// use ordered_float::OrderedFloat;
 
 #[test]
 fn orderbook_test() {
@@ -26,5 +30,17 @@ fn orderbook_test() {
 
 #[test]
 fn bid_price_test() {
-    let bid_price: BidPrice<f32> = BidPrice(0.0);
+    assert_eq!(BidPrice(0.0) > BidPrice(1.0), true);
+    assert_eq!(BidPrice(0.0) >= BidPrice(1.0), true);
+    assert_eq!(BidPrice(0.0) < BidPrice(1.0), false);
+    assert_eq!(BidPrice(0.0) <= BidPrice(1.0), false);
+    assert_eq!(BidPrice(0.0) == BidPrice(1.0), false);
+    assert_eq!(BidPrice(0.0) == BidPrice(0.0), true);
+
+    assert_eq!(AskPrice(0.0) > AskPrice(1.0), false);
+    assert_eq!(AskPrice(0.0) >= AskPrice(1.0), false);
+    assert_eq!(AskPrice(0.0) < AskPrice(1.0), true);
+    assert_eq!(AskPrice(0.0) <= AskPrice(1.0), true);
+    assert_eq!(AskPrice(0.0) == AskPrice(1.0), false);
+    assert_eq!(AskPrice(0.0) == AskPrice(0.0), true);
 }
