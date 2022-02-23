@@ -1,23 +1,33 @@
 use orderbook::OrderBook;
+use orderbook::order::Order;
+use orderbook::order_side::OrderSide;
 
 #[test]
 fn orderbook_test() {
     let mut orderbook: OrderBook = OrderBook::new(10);
     assert_eq!(orderbook.instrument_id(), 10);
 
-    bid_test(&mut orderbook);
-    ask_test(&mut orderbook);
+    let bid_prices: Vec<(f32, i32)> = vec![(3.0, 2), (2.0, 1), (1.0, 3)];
+    // let ask_prices = vec![3.0, 2.0, 1.0];
 
-    
+    for (price, times) in &bid_prices {
+        for _ in 0..*times {
+            let order: Order = Order::new(1, 1, "test".to_string(), *price, 100, OrderSide::Bid);
+            orderbook.bid(*price, order).unwrap();
+        }
+    }
+
+    bid_test(&orderbook, &bid_prices);
+    ask_test(&orderbook);
 }
 
-fn bid_test(orderbook: &mut OrderBook) {
-    orderbook.bid(1.0, 1000);
-    orderbook.bid(2.0, 1000);
-    orderbook.bid(3.0, 1000);
-    orderbook.bid(10.0, 1000);
-    orderbook.bid(0.1, 1000);
-    orderbook.bid(0.001, 1000);
+fn bid_test(orderbook: &OrderBook, prices: &Vec<(f32, i32)>) {
+    println!("------");
+    for (price, _) in prices {
+        let volume = orderbook.bid_price_level_volume(*price).unwrap();
+        let size = orderbook.bid_price_level_size(*price).unwrap();
+        println!("level {price} => size: {size}, volume: {volume}");
+    }
     let mut price_list = orderbook.bid_price_list();
     let price_list: Vec<f32> = price_list.iter_mut().map(|x| x.into_inner()).collect();
     println!("bid price list: {price_list:?}");
@@ -27,13 +37,8 @@ fn bid_test(orderbook: &mut OrderBook) {
     println!("worst bid: {worst_bid:?}");
 }
 
-fn ask_test(orderbook: &mut OrderBook) {
-    orderbook.ask(11.0, 1000);
-    orderbook.ask(0.04, 1000);
-    orderbook.ask(100.0, 1000);
-    orderbook.ask(33.0, 1000);
-    orderbook.ask(5.0, 1000);
-    orderbook.ask(60.0, 1000);
+fn ask_test(orderbook: &OrderBook) {
+    println!("------");
     let mut price_list = orderbook.ask_price_list();
     let price_list: Vec<f32> = price_list.iter_mut().map(|x| x.into_inner()).collect();
     println!("ask price list: {price_list:?}");

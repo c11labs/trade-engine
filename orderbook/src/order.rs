@@ -2,11 +2,11 @@ use crate::order_side::OrderSide;
 use anyhow::Result;
 use std::fmt::Debug;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Order {
     pub order_id: u32,
-    pub user_name: String,
-    pub security_id: u32,
+    pub user_id: u32,
+    pub instrument_id: String,
     pub quantity: u32,
     pub price: f32,
     pub side: OrderSide,
@@ -15,19 +15,19 @@ pub struct Order {
 impl Order {
     pub fn new(
         order_id: u32,
-        user_name: String,
-        security_id: u32,
+        user_id: u32,
+        instrument_id: String,
         price: f32,
         quantity: u32,
         side: OrderSide,
-    ) -> Result<Self> {
-        Ok(Self {
+    ) -> Self {
+        Self {
             order_id,
-            user_name,
-            security_id,
+            user_id,
+            instrument_id,
             price,
             quantity,
             side,
-        })
+        }
     }
 }

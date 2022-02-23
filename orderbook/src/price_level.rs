@@ -3,14 +3,14 @@ use crate::order::Order;
 use anyhow::{anyhow, Result};
 
 #[derive(Debug)]
-pub struct PriceLevel<'a> {
+pub struct PriceLevel {
     price: f32,  // price limit of this price level
     size: u32,   // number of order in this price level
     volume: u32, // total number of shares of all order in this price level
-    orders: Vec<&'a Order>,
+    orders: Vec<Order>,
 }
 
-impl<'a> PriceLevel<'a> {
+impl PriceLevel {
     pub fn new(price: f32) -> Self {
         Self {
             price,
@@ -20,10 +20,10 @@ impl<'a> PriceLevel<'a> {
         }
     }
 
-    pub fn add(&mut self, order: &'a Order) -> Result<()> {
-        self.orders.push(order);
-        self.size += 1;
+    pub fn add(&mut self, order: Order) -> Result<()> {
         self.volume += order.quantity;
+        self.size += 1;
+        self.orders.push(order);
 
         Ok(())
     }
@@ -37,9 +37,9 @@ impl<'a> PriceLevel<'a> {
         Ok(())
     }
 
-    pub fn modify(&mut self, order_id: u32, order: &'a Order) -> Result<()> {
+    pub fn modify(&mut self, order_id: u32, order: Order) -> Result<()> {
         self.remove(order_id)?;
-        self.add(&order)?;
+        self.add(order)?;
 
         Ok(())
     }

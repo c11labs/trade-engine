@@ -5,27 +5,36 @@ pub mod order_side;
 pub mod order_type;
 pub mod price;
 pub mod price_level;
-pub mod price_tree;
+pub mod order_tree;
 
 use anyhow::{anyhow, Result};
 use order_side::OrderSide;
-use price_tree::{Summary, AskTree, BidTree};
+use order::Order;
+use order_tree::{Summary, AskTree, OrderTree};
 use price::{BidPrice, AskPrice};
 
 #[derive(Debug)]
-pub struct OrderBook<'a> {
+pub struct OrderBook {
     instrument_id: u32,
-    bid: BidTree<'a>,
-    ask: AskTree<'a>,
+    bid: OrderTree,
+    ask: AskTree,
 }
 
-impl<'a> OrderBook<'a> {
+impl OrderBook {
     pub fn new(instrument_id: u32) -> Self {
         Self {
             instrument_id,
-            bid: BidTree::new(),
+            bid: OrderTree::new(),
             ask: AskTree::new(),
         }
+    }
+
+    pub fn bid_price_level_volume(&self, price: f32) -> Result<u32> {
+        Ok(self.bid.price_level_volume(price)?)
+    }
+
+    pub fn bid_price_level_size(&self, price: f32) -> Result<u32> {
+        Ok(self.bid.price_level_size(price)?)
     }
 
     pub fn add_price(&mut self, price: f32, side: OrderSide) -> Result<()> {
@@ -40,12 +49,20 @@ impl<'a> OrderBook<'a> {
         Ok(())
     }
 
-    pub fn bid(&mut self, price: f32, shares: u32) -> Result<()> {
-        if self.bid.contains_price(price) {
-            return Err(anyhow!("already contain key"));
-        } else {
-            self.add_price(price, OrderSide::Bid)?;
+    fn m_add_order(&mut self, price: f32, order: Order, side: OrderSide) -> Result<()> {
+        match side {
+            OrderSide::Bid => {
+                self.bid.add_order(price, order)?;
+            }
+            OrderSide::Ask => {
+
+            }
         }
+        Ok(())
+    }
+
+    pub fn bid(&mut self, price: f32, order: Order) -> Result<()> {
+        self.m_add_order(price, order, OrderSide::Bid)?;
         Ok(())
     }
 

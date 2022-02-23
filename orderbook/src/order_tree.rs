@@ -1,8 +1,8 @@
-use ordered_float::OrderedFloat;
 use crate::price_level::PriceLevel;
+use crate::order::Order;
 use crate::price::{AskPrice, BidPrice};
 use std::collections::BTreeMap;
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 pub trait Summary {
     fn best_price(&self) -> f32;
@@ -10,13 +10,13 @@ pub trait Summary {
 }
 
 #[derive(Debug)]
-pub struct BidTree<'a> {
-    tree: BTreeMap<BidPrice, PriceLevel<'a>>,
+pub struct OrderTree {
+    tree: BTreeMap<BidPrice, PriceLevel>,
     best_price: BidPrice,
     worst_price: BidPrice,
 }
 
-impl<'a> Summary for BidTree<'a> {
+impl Summary for OrderTree {
     fn best_price(&self) -> f32 {
         self.best_price.into_inner()
     }
@@ -26,7 +26,7 @@ impl<'a> Summary for BidTree<'a> {
     }
 }
 
-impl<'a> BidTree<'a> {
+impl OrderTree {
     pub fn new() -> Self {
         Self {
             tree: BTreeMap::new(),
@@ -51,6 +51,20 @@ impl<'a> BidTree<'a> {
         Ok(())
     }
 
+    pub fn add_order(&mut self, price: f32, order: Order) -> Result<()> {
+        match self.tree.get_mut(&BidPrice(price)) {
+            Some(price_level) => {
+                price_level.add(order)?;
+            }
+            None => {
+                self.add(price)?;
+                let price_level = self.tree.get_mut(&BidPrice(price)).context("can not add new order")?;
+                price_level.add(order)?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn contains_price(&self, price: f32) -> bool {
         self.tree.contains_key(&BidPrice(price))
     }
@@ -58,16 +72,26 @@ impl<'a> BidTree<'a> {
     pub fn price_list(&self) -> Vec<BidPrice> {
         self.tree.keys().cloned().collect()
     }
+
+    pub fn price_level_size(&self, price: f32) -> Result<u32> {
+        let price_level = self.tree.get(&BidPrice(price)).context("key not found")?;
+        Ok(price_level.size())
+    }
+
+    pub fn price_level_volume(&self, price: f32) -> Result<u32> {
+        let price_level = self.tree.get(&BidPrice(price)).context("key not found")?;
+        Ok(price_level.volume())
+    }
 }
 
 #[derive(Debug)]
-pub struct AskTree<'a> {
-    tree: BTreeMap<AskPrice, PriceLevel<'a>>,
+pub struct AskTree {
+    tree: BTreeMap<AskPrice, PriceLevel>,
     pub best_price: AskPrice,
     pub worst_price: AskPrice,
 }
 
-impl<'a> Summary for AskTree<'a> {
+impl Summary for AskTree {
     fn best_price(&self) -> f32 {
         self.best_price.into_inner()
     }
@@ -77,7 +101,7 @@ impl<'a> Summary for AskTree<'a> {
     }
 }
 
-impl<'a> AskTree<'a> {
+impl AskTree {
     pub fn new() -> Self {
         Self {
             tree: BTreeMap::new(),
