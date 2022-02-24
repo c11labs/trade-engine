@@ -1,5 +1,4 @@
 use crate::order_side::OrderSide;
-use anyhow::Result;
 use std::fmt::Debug;
 
 #[derive(Debug, Clone)]

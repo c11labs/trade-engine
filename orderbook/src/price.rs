@@ -2,11 +2,16 @@ use ordered_float::OrderedFloat;
 use std::cmp::Ordering;
 use std::cmp::PartialEq;
 
+pub trait IntoInner {
+    fn into_inner(self) -> f32;
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct BidPrice(pub f32);
 
-impl BidPrice {
-    pub fn into_inner(self) -> f32 {
+
+impl IntoInner for BidPrice {
+    fn into_inner(self) -> f32 {
         self.0
     }
 }
@@ -47,8 +52,8 @@ impl Ord for BidPrice {
 #[derive(Debug, Copy, Clone)]
 pub struct AskPrice(pub f32);
 
-impl AskPrice {
-    pub fn into_inner(self) -> f32 {
+impl IntoInner for AskPrice {
+    fn into_inner(self) -> f32 {
         self.0
     }
 }

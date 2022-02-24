@@ -1,8 +1,20 @@
 use crate::price_level::PriceLevel;
 use crate::order::Order;
-use crate::price::{AskPrice, BidPrice};
+use crate::price::{IntoInner, AskPrice, BidPrice};
 use std::collections::BTreeMap;
 use anyhow::{Context, Result};
+
+impl From<f32> for BidPrice {
+    fn from(price: f32) -> Self {
+        Self(price)
+    }
+}
+
+impl From<f32> for AskPrice {
+    fn from(price: f32) -> Self {
+        Self(price)
+    }
+}
 
 pub trait Summary {
     fn best_price(&self) -> f32;
@@ -10,23 +22,13 @@ pub trait Summary {
 }
 
 #[derive(Debug)]
-pub struct OrderTree {
-    tree: BTreeMap<BidPrice, PriceLevel>,
-    best_price: BidPrice,
-    worst_price: BidPrice,
+pub struct OrderTree<T> {
+    tree: BTreeMap<T, PriceLevel>,
+    best_price: T,
+    worst_price: T,
 }
 
-impl Summary for OrderTree {
-    fn best_price(&self) -> f32 {
-        self.best_price.into_inner()
-    }
-
-    fn worst_price(&self) -> f32 {
-        self.worst_price.into_inner()
-    }
-}
-
-impl OrderTree {
+impl OrderTree<BidPrice> {
     pub fn new() -> Self {
         Self {
             tree: BTreeMap::new(),
@@ -34,10 +36,22 @@ impl OrderTree {
             worst_price: BidPrice(f32::INFINITY),
         }
     }
+}
 
+impl OrderTree<AskPrice> {
+    pub fn new() -> Self {
+        Self {
+            tree: BTreeMap::new(),
+            best_price: AskPrice(f32::INFINITY),
+            worst_price: AskPrice(f32::NEG_INFINITY),
+        }
+    }
+}
+
+impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy +  From<f32>> OrderTree<T> {
     pub fn add(&mut self, price: f32) -> Result<()> {
         let limit = PriceLevel::new(price);
-        let price = BidPrice(price);
+        let price = T::from(price);
         self.tree.insert(price, limit);
 
         if self.best_price > price {
@@ -52,13 +66,13 @@ impl OrderTree {
     }
 
     pub fn add_order(&mut self, price: f32, order: Order) -> Result<()> {
-        match self.tree.get_mut(&BidPrice(price)) {
+        match self.tree.get_mut(&T::from(price)) {
             Some(price_level) => {
                 price_level.add(order)?;
             }
             None => {
                 self.add(price)?;
-                let price_level = self.tree.get_mut(&BidPrice(price)).context("can not add new order")?;
+                let price_level = self.tree.get_mut(&T::from(price)).context("can not add new order")?;
                 price_level.add(order)?;
             }
         }
@@ -66,71 +80,28 @@ impl OrderTree {
     }
 
     pub fn contains_price(&self, price: f32) -> bool {
-        self.tree.contains_key(&BidPrice(price))
+        self.tree.contains_key(&T::from(price))
     }
 
-    pub fn price_list(&self) -> Vec<BidPrice> {
+    pub fn price_list(&self) -> Vec<T> {
         self.tree.keys().cloned().collect()
     }
 
     pub fn price_level_size(&self, price: f32) -> Result<u32> {
-        let price_level = self.tree.get(&BidPrice(price)).context("key not found")?;
+        let price_level = self.tree.get(&T::from(price)).context("key not found")?;
         Ok(price_level.size())
     }
 
     pub fn price_level_volume(&self, price: f32) -> Result<u32> {
-        let price_level = self.tree.get(&BidPrice(price)).context("key not found")?;
+        let price_level = self.tree.get(&T::from(price)).context("key not found")?;
         Ok(price_level.volume())
     }
-}
 
-#[derive(Debug)]
-pub struct AskTree {
-    tree: BTreeMap<AskPrice, PriceLevel>,
-    pub best_price: AskPrice,
-    pub worst_price: AskPrice,
-}
-
-impl Summary for AskTree {
-    fn best_price(&self) -> f32 {
+    pub fn best_price(&self) -> f32 {
         self.best_price.into_inner()
     }
 
-    fn worst_price(&self) -> f32 {
+    pub fn worst_price(&self) -> f32 {
         self.worst_price.into_inner()
-    }
-}
-
-impl AskTree {
-    pub fn new() -> Self {
-        Self {
-            tree: BTreeMap::new(),
-            best_price: AskPrice(f32::INFINITY),
-            worst_price: AskPrice(f32::NEG_INFINITY),
-        }
-    }
-
-    pub fn add(&mut self, price: f32) -> Result<()> {
-        let limit = PriceLevel::new(price);
-        let price = AskPrice(price);
-        self.tree.insert(price, limit);
-
-        if self.best_price > price {
-            self.best_price = price;
-        }
-
-        if self.worst_price < price {
-            self.worst_price = price;
-        }
-
-        Ok(())
-    }
-
-    pub fn contains_price(&self, price: f32) -> bool {
-        self.tree.contains_key(&AskPrice(price))
-    }
-
-    pub fn price_list(&self) -> Vec<AskPrice> {
-        self.tree.keys().cloned().collect()
     }
 }
