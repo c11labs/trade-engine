@@ -2,16 +2,16 @@ pub mod order;
 pub mod order_action;
 pub mod order_data;
 pub mod order_side;
+pub mod order_tree;
 pub mod order_type;
 pub mod price;
 pub mod price_level;
-pub mod order_tree;
 
 use anyhow::{anyhow, Result};
-use order_side::OrderSide;
 use order::Order;
+use order_side::OrderSide;
 use order_tree::OrderTree;
-use price::{BidPrice, AskPrice};
+use price::{AskPrice, BidPrice};
 
 #[derive(Debug)]
 pub struct OrderBook {
@@ -45,18 +45,6 @@ impl OrderBook {
         Ok(self.ask.price_level_size(price)?)
     }
 
-    pub fn add_price(&mut self, price: f32, side: OrderSide) -> Result<()> {
-        match side {
-            OrderSide::Bid => {
-                self.bid.add(price)?;
-            }
-            OrderSide::Ask => {
-                self.ask.add(price)?;
-            }
-        }
-        Ok(())
-    }
-
     fn m_add_order(&mut self, price: f32, order: Order, side: OrderSide) -> Result<()> {
         match side {
             OrderSide::Bid => {
@@ -75,11 +63,6 @@ impl OrderBook {
     }
 
     pub fn ask(&mut self, price: f32, order: Order) -> Result<()> {
-        /* if self.ask.contains_price(price) {
-            return Err(anyhow!("already contain key"));
-        } else {
-            self.add_price(price, OrderSide::Ask)?;
-        } */
         self.m_add_order(price, order, OrderSide::Ask)?;
         Ok(())
     }
@@ -87,7 +70,7 @@ impl OrderBook {
     pub fn bid_price_list(&self) -> Vec<BidPrice> {
         self.bid.price_list()
     }
-    
+
     pub fn ask_price_list(&self) -> Vec<AskPrice> {
         self.ask.price_list()
     }

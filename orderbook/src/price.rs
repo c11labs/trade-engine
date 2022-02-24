@@ -9,7 +9,6 @@ pub trait IntoInner {
 #[derive(Debug, Copy, Clone)]
 pub struct BidPrice(pub f32);
 
-
 impl IntoInner for BidPrice {
     fn into_inner(self) -> f32 {
         self.0

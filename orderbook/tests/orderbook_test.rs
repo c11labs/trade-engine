@@ -1,7 +1,7 @@
-use orderbook::OrderBook;
 use orderbook::order::Order;
 use orderbook::order_side::OrderSide;
 use orderbook::price::IntoInner;
+use orderbook::OrderBook;
 
 #[test]
 fn orderbook_test() {

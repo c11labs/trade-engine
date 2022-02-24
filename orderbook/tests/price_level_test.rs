@@ -24,14 +24,7 @@ fn price_level_test() {
     assert_eq!(limit.volume(), 100);
 
     // modify order
-    let modified_order = Order::new(
-        order_id,
-        1,
-        "quang".to_string(),
-        3.0,
-        1000,
-        OrderSide::Bid,
-    );
+    let modified_order = Order::new(order_id, 1, "quang".to_string(), 3.0, 1000, OrderSide::Bid);
     limit.modify(order_id, modified_order).unwrap();
     // get modified order
     let (_index, found): (usize, &Order) = limit.get_order(order_id).unwrap();

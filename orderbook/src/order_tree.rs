@@ -1,8 +1,8 @@
-use crate::price_level::PriceLevel;
 use crate::order::Order;
-use crate::price::{IntoInner, AskPrice, BidPrice};
-use std::collections::BTreeMap;
+use crate::price::{AskPrice, BidPrice, IntoInner};
+use crate::price_level::PriceLevel;
 use anyhow::{Context, Result};
+use std::collections::BTreeMap;
 
 impl From<f32> for BidPrice {
     fn from(price: f32) -> Self {
@@ -48,7 +48,7 @@ impl OrderTree<AskPrice> {
     }
 }
 
-impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy +  From<f32>> OrderTree<T> {
+impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> OrderTree<T> {
     pub fn add(&mut self, price: f32) -> Result<()> {
         let limit = PriceLevel::new(price);
         let price = T::from(price);
@@ -72,7 +72,10 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy +  From<f32>> Or
             }
             None => {
                 self.add(price)?;
-                let price_level = self.tree.get_mut(&T::from(price)).context("can not add new order")?;
+                let price_level = self
+                    .tree
+                    .get_mut(&T::from(price))
+                    .context("can not add new order")?;
                 price_level.add(order)?;
             }
         }
