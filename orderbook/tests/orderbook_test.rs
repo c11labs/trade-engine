@@ -8,25 +8,31 @@ fn orderbook_test() {
     let mut orderbook: OrderBook = OrderBook::new(10);
     assert_eq!(orderbook.instrument_id(), 10);
 
+    // init prices
     let bid_prices: Vec<(f32, i32)> = vec![(3.0, 2), (2.0, 1), (1.0, 3)];
     let ask_prices: Vec<(f32, i32)> = vec![(0.01, 2), (8.0, 8), (5.0, 5)];
 
+    // init bid limit order
     for (price, times) in &bid_prices {
         for _ in 0..*times {
             let order: Order = Order::new(1, 1, "test".to_string(), *price, 100, OrderSide::Bid);
             orderbook.bid(*price, order).unwrap();
         }
     }
+    bid_test(&orderbook, &bid_prices);
 
+    // init ask limit order
     for (price, times) in &ask_prices {
         for _ in 0..*times {
             let order: Order = Order::new(1, 1, "test".to_string(), *price, 100, OrderSide::Bid);
             orderbook.ask(*price, order).unwrap();
         }
     }
-
-    bid_test(&orderbook, &bid_prices);
     ask_test(&orderbook, &ask_prices);
+
+    // order matching
+    let order: Order = Order::new(1, 1, "test".to_string(), 8.0, 100, OrderSide::Bid);
+    orderbook.bid(8.0, order).unwrap();
 }
 
 fn bid_test(orderbook: &OrderBook, prices: &Vec<(f32, i32)>) {

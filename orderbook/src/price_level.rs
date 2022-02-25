@@ -1,5 +1,4 @@
 use crate::order::Order;
-// use crate::order_side::OrderSide;
 use anyhow::{anyhow, Result};
 
 #[derive(Debug)]
@@ -52,6 +51,12 @@ impl PriceLevel {
         }
 
         Err(anyhow!("order not found"))
+    }
+    
+    pub fn match_order(&mut self, order: &mut Order) -> Result<()> {
+        println!("match");
+
+        Ok(())
     }
 
     pub fn size(&self) -> u32 {

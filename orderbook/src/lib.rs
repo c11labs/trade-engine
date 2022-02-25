@@ -1,6 +1,5 @@
 pub mod order;
 pub mod order_action;
-pub mod order_data;
 pub mod order_side;
 pub mod order_tree;
 pub mod order_type;
@@ -57,13 +56,32 @@ impl OrderBook {
         Ok(())
     }
 
-    pub fn bid(&mut self, price: f32, order: Order) -> Result<()> {
+    pub fn bid(&mut self, price: f32, mut order: Order) -> Result<()> {
+        if let Err(_err) = self.match_order(price, &mut order, OrderSide::Bid) {
+            
+        };
         self.m_add_order(price, order, OrderSide::Bid)?;
         Ok(())
     }
 
-    pub fn ask(&mut self, price: f32, order: Order) -> Result<()> {
+    pub fn ask(&mut self, price: f32, mut order: Order) -> Result<()> {
+        if let Err(_err) = self.match_order(price, &mut order, OrderSide::Ask) {
+
+        };
         self.m_add_order(price, order, OrderSide::Ask)?;
+        Ok(())
+    }
+
+    fn match_order(&mut self, price: f32, order: &mut Order, side: OrderSide) -> Result<()> {
+        match side {
+            OrderSide::Bid => {
+                self.ask.match_order(price, order)?;
+            }
+            OrderSide::Ask => {
+                self.bid.match_order(price, order)?;
+            }
+        }
+
         Ok(())
     }
 

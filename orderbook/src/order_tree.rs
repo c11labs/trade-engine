@@ -91,12 +91,12 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
     }
 
     pub fn price_level_size(&self, price: f32) -> Result<u32> {
-        let price_level = self.tree.get(&T::from(price)).context("key not found")?;
+        let price_level = self.tree.get(&T::from(price)).context("price not found")?;
         Ok(price_level.size())
     }
 
     pub fn price_level_volume(&self, price: f32) -> Result<u32> {
-        let price_level = self.tree.get(&T::from(price)).context("key not found")?;
+        let price_level = self.tree.get(&T::from(price)).context("price not found")?;
         Ok(price_level.volume())
     }
 
@@ -106,5 +106,12 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
 
     pub fn worst_price(&self) -> f32 {
         self.worst_price.into_inner()
+    }
+
+    pub fn match_order(&mut self, price: f32, order: &mut Order) -> Result<()> {
+        let price_level = self.tree.get_mut(&T::from(price)).context("price not found")?;
+        price_level.match_order(order)?;
+        
+        Ok(())
     }
 }
