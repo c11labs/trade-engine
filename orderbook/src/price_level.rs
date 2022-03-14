@@ -1,10 +1,10 @@
 use crate::order::Order;
 use anyhow::{anyhow, Result};
+use std::cmp::min;
 
 #[derive(Debug)]
 pub struct PriceLevel {
     price: f32,  // price limit of this price level
-    size: u32,   // number of order in this price level
     volume: u32, // total number of shares of all order in this price level
     orders: Vec<Order>,
 }
@@ -13,15 +13,13 @@ impl PriceLevel {
     pub fn new(price: f32) -> Self {
         Self {
             price,
-            size: 0,
             volume: 0,
-            orders: vec![],
+            orders: Vec::new(),
         }
     }
 
     pub fn add(&mut self, order: Order) -> Result<()> {
         self.volume += order.quantity;
-        self.size += 1;
         self.orders.push(order);
 
         Ok(())
@@ -30,7 +28,6 @@ impl PriceLevel {
     pub fn remove(&mut self, order_id: u32) -> Result<()> {
         let (index, order): (usize, &Order) = self.get_order(order_id)?;
         self.volume -= order.quantity;
-        self.size -= 1;
         self.orders.remove(index);
 
         Ok(())
@@ -53,17 +50,40 @@ impl PriceLevel {
         Err(anyhow!("order not found"))
     }
     
-    pub fn match_order(&mut self, order: &mut Order) -> Result<()> {
-        println!("match");
+    pub fn match_order(&mut self, match_order: &mut Order) -> Result<()> {
+        // println!("----------");
+        let mut num_removed = 0;
+        for order in &mut self.orders {
+            let num_quantity = min(match_order.quantity, order.quantity);
+            match_order.quantity -= num_quantity;
+            order.quantity -= num_quantity;
+            self.volume -= num_quantity;
+
+            if order.quantity == 0 {
+                num_removed += 1;
+            }
+
+            // println!("{order:?}");
+
+            if match_order.quantity == 0 {
+                break;
+            }
+        }
+
+        self.orders.drain(0..num_removed);
 
         Ok(())
     }
 
     pub fn size(&self) -> u32 {
-        self.size
+        self.orders.len().try_into().unwrap()
     }
 
     pub fn volume(&self) -> u32 {
         self.volume
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.orders.is_empty()
     }
 }

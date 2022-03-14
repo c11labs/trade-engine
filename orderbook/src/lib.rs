@@ -6,11 +6,13 @@ pub mod order_type;
 pub mod price;
 pub mod price_level;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Result, Context};
 use order::Order;
 use order_side::OrderSide;
+use order_type::OrderType;
 use order_tree::OrderTree;
-use price::{AskPrice, BidPrice};
+use price::{AskPrice, BidPrice, IntoInner};
+use ordered_float::OrderedFloat;
 
 #[derive(Debug)]
 pub struct OrderBook {
@@ -44,31 +46,15 @@ impl OrderBook {
         Ok(self.ask.price_level_size(price)?)
     }
 
-    fn m_add_order(&mut self, price: f32, order: Order, side: OrderSide) -> Result<()> {
+    fn m_add_order(&mut self, order: Order, side: OrderSide) -> Result<()> {
         match side {
             OrderSide::Bid => {
-                self.bid.add_order(price, order)?;
+                self.bid.add_order(order.price.context("no price provided")?, order)?;
             }
             OrderSide::Ask => {
-                self.ask.add_order(price, order)?;
+                self.ask.add_order(order.price.context("no price provided")?, order)?;
             }
         }
-        Ok(())
-    }
-
-    pub fn bid(&mut self, price: f32, mut order: Order) -> Result<()> {
-        if let Err(_err) = self.match_order(price, &mut order, OrderSide::Bid) {
-            
-        };
-        self.m_add_order(price, order, OrderSide::Bid)?;
-        Ok(())
-    }
-
-    pub fn ask(&mut self, price: f32, mut order: Order) -> Result<()> {
-        if let Err(_err) = self.match_order(price, &mut order, OrderSide::Ask) {
-
-        };
-        self.m_add_order(price, order, OrderSide::Ask)?;
         Ok(())
     }
 
@@ -81,6 +67,58 @@ impl OrderBook {
                 self.bid.match_order(price, order)?;
             }
         }
+
+        Ok(())
+    }
+
+    pub fn bid(&mut self, mut order: Order) -> Result<()> {
+        let price_list: Vec<AskPrice> = self.ask_price_list();
+        match order.r#type {
+            OrderType::Limit => {
+                for ask_price in price_list.iter() {
+                    if order.quantity == 0 { break }
+                    if OrderedFloat(ask_price.into_inner()) > OrderedFloat(order.price.context("no price provided")?) { break }
+                    if let Err(_err) = self.match_order(ask_price.into_inner(), &mut order, OrderSide::Bid) {}
+                }
+
+                if order.quantity > 0 {
+                    self.m_add_order(order, OrderSide::Bid)?;
+                }
+            }
+            OrderType::Market => {
+                for ask_price in price_list.iter() {
+                    if order.quantity == 0 { break }
+                    if let Err(_err) = self.match_order(ask_price.into_inner(), &mut order, OrderSide::Bid) {}
+                }
+            }
+            _ => {}
+        };
+
+        Ok(())
+    }
+
+    pub fn ask(&mut self, mut order: Order) -> Result<()> {
+        let price_list: Vec<BidPrice> = self.bid_price_list();
+        match order.r#type {
+            OrderType::Limit => {
+                for bid_price in price_list.iter() {
+                    if order.quantity == 0 { break }
+                    if OrderedFloat(bid_price.into_inner()) < OrderedFloat(order.price.context("no price provided")?) { break }
+                    if let Err(_err) = self.match_order(bid_price.into_inner(), &mut order, OrderSide::Ask) {}
+                }
+
+                if order.quantity > 0 {
+                    self.m_add_order(order, OrderSide::Ask)?;
+                }
+            }
+            OrderType::Market => {
+                for bid_price in price_list.iter() {
+                    if order.quantity == 0 { break }
+                    if let Err(_err) = self.match_order(bid_price.into_inner(), &mut order, OrderSide::Ask) {}
+                }
+            }
+            _ => {}
+        };
 
         Ok(())
     }

@@ -1,5 +1,6 @@
+#[derive(Debug, Clone)]
 pub enum OrderType {
-    LimitOrder,
-    MarketOrder,
-    StopOrder,
+    Limit,
+    Market,
+    Stop,
 }

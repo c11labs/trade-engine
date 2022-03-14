@@ -26,6 +26,7 @@ pub struct OrderTree<T> {
     tree: BTreeMap<T, PriceLevel>,
     best_price: T,
     worst_price: T,
+    price_list: Vec<T>,
 }
 
 impl OrderTree<BidPrice> {
@@ -34,6 +35,7 @@ impl OrderTree<BidPrice> {
             tree: BTreeMap::new(),
             best_price: BidPrice(f32::NEG_INFINITY),
             worst_price: BidPrice(f32::INFINITY),
+            price_list: Vec::new(),
         }
     }
 }
@@ -44,12 +46,13 @@ impl OrderTree<AskPrice> {
             tree: BTreeMap::new(),
             best_price: AskPrice(f32::INFINITY),
             worst_price: AskPrice(f32::NEG_INFINITY),
+            price_list: Vec::new(),
         }
     }
 }
 
 impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> OrderTree<T> {
-    pub fn add(&mut self, price: f32) -> Result<()> {
+    fn add_price_level(&mut self, price: f32) -> Result<()> {
         let limit = PriceLevel::new(price);
         let price = T::from(price);
         self.tree.insert(price, limit);
@@ -71,7 +74,8 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
                 price_level.add(order)?;
             }
             None => {
-                self.add(price)?;
+                self.add_price_level(price)?;
+                self.price_list = self.tree.keys().cloned().collect();
                 let price_level = self
                     .tree
                     .get_mut(&T::from(price))
@@ -87,7 +91,7 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
     }
 
     pub fn price_list(&self) -> Vec<T> {
-        self.tree.keys().cloned().collect()
+        self.price_list.clone()
     }
 
     pub fn price_level_size(&self, price: f32) -> Result<u32> {
@@ -111,6 +115,11 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
     pub fn match_order(&mut self, price: f32, order: &mut Order) -> Result<()> {
         let price_level = self.tree.get_mut(&T::from(price)).context("price not found")?;
         price_level.match_order(order)?;
+
+        if price_level.is_empty() {
+            self.tree.remove(&T::from(price));
+            self.price_list = self.tree.keys().cloned().collect();
+        }
         
         Ok(())
     }
