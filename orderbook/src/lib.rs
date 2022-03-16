@@ -6,13 +6,13 @@ pub mod order_type;
 pub mod price;
 pub mod price_level;
 
-use anyhow::{anyhow, Result, Context};
+use anyhow::{anyhow, Context, Result};
 use order::Order;
 use order_side::OrderSide;
-use order_type::OrderType;
 use order_tree::OrderTree;
-use price::{AskPrice, BidPrice, IntoInner};
+use order_type::OrderType;
 use ordered_float::OrderedFloat;
+use price::{AskPrice, BidPrice, IntoInner};
 
 #[derive(Debug)]
 pub struct OrderBook {
@@ -49,10 +49,12 @@ impl OrderBook {
     fn m_add_order(&mut self, order: Order, side: OrderSide) -> Result<()> {
         match side {
             OrderSide::Bid => {
-                self.bid.add_order(order.price.context("no price provided")?, order)?;
+                self.bid
+                    .add_order(order.price.context("no price provided")?, order)?;
             }
             OrderSide::Ask => {
-                self.ask.add_order(order.price.context("no price provided")?, order)?;
+                self.ask
+                    .add_order(order.price.context("no price provided")?, order)?;
             }
         }
         Ok(())
@@ -76,9 +78,18 @@ impl OrderBook {
         match order.r#type {
             OrderType::Limit => {
                 for ask_price in price_list.iter() {
-                    if order.quantity == 0 { break }
-                    if OrderedFloat(ask_price.into_inner()) > OrderedFloat(order.price.context("no price provided")?) { break }
-                    if let Err(_err) = self.match_order(ask_price.into_inner(), &mut order, OrderSide::Bid) {}
+                    if order.quantity == 0 {
+                        break;
+                    }
+                    if OrderedFloat(ask_price.into_inner())
+                        > OrderedFloat(order.price.context("no price provided")?)
+                    {
+                        break;
+                    }
+                    if let Err(_err) =
+                        self.match_order(ask_price.into_inner(), &mut order, OrderSide::Bid)
+                    {
+                    }
                 }
 
                 if order.quantity > 0 {
@@ -87,8 +98,13 @@ impl OrderBook {
             }
             OrderType::Market => {
                 for ask_price in price_list.iter() {
-                    if order.quantity == 0 { break }
-                    if let Err(_err) = self.match_order(ask_price.into_inner(), &mut order, OrderSide::Bid) {}
+                    if order.quantity == 0 {
+                        break;
+                    }
+                    if let Err(_err) =
+                        self.match_order(ask_price.into_inner(), &mut order, OrderSide::Bid)
+                    {
+                    }
                 }
             }
             _ => {}
@@ -102,9 +118,18 @@ impl OrderBook {
         match order.r#type {
             OrderType::Limit => {
                 for bid_price in price_list.iter() {
-                    if order.quantity == 0 { break }
-                    if OrderedFloat(bid_price.into_inner()) < OrderedFloat(order.price.context("no price provided")?) { break }
-                    if let Err(_err) = self.match_order(bid_price.into_inner(), &mut order, OrderSide::Ask) {}
+                    if order.quantity == 0 {
+                        break;
+                    }
+                    if OrderedFloat(bid_price.into_inner())
+                        < OrderedFloat(order.price.context("no price provided")?)
+                    {
+                        break;
+                    }
+                    if let Err(_err) =
+                        self.match_order(bid_price.into_inner(), &mut order, OrderSide::Ask)
+                    {
+                    }
                 }
 
                 if order.quantity > 0 {
@@ -113,8 +138,13 @@ impl OrderBook {
             }
             OrderType::Market => {
                 for bid_price in price_list.iter() {
-                    if order.quantity == 0 { break }
-                    if let Err(_err) = self.match_order(bid_price.into_inner(), &mut order, OrderSide::Ask) {}
+                    if order.quantity == 0 {
+                        break;
+                    }
+                    if let Err(_err) =
+                        self.match_order(bid_price.into_inner(), &mut order, OrderSide::Ask)
+                    {
+                    }
                 }
             }
             _ => {}

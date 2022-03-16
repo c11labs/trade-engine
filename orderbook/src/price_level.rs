@@ -49,7 +49,7 @@ impl PriceLevel {
 
         Err(anyhow!("order not found"))
     }
-    
+
     pub fn match_order(&mut self, match_order: &mut Order) -> Result<()> {
         // println!("----------");
         let mut num_removed = 0;

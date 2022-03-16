@@ -113,14 +113,17 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
     }
 
     pub fn match_order(&mut self, price: f32, order: &mut Order) -> Result<()> {
-        let price_level = self.tree.get_mut(&T::from(price)).context("price not found")?;
+        let price_level = self
+            .tree
+            .get_mut(&T::from(price))
+            .context("price not found")?;
         price_level.match_order(order)?;
 
         if price_level.is_empty() {
             self.tree.remove(&T::from(price));
             self.price_list = self.tree.keys().cloned().collect();
         }
-        
+
         Ok(())
     }
 }
