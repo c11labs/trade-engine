@@ -1,53 +1,154 @@
+#![allow(dead_code)]
+
 use orderbook::order::Order;
 use orderbook::order_side::OrderSide;
+use orderbook::order_type::OrderType;
 use orderbook::price::IntoInner;
 use orderbook::OrderBook;
-use orderbook::order_type::OrderType;
 
 #[test]
 fn orderbook_test() {
     let mut orderbook: OrderBook = OrderBook::new(10);
     assert_eq!(orderbook.instrument_id(), 10);
 
-    // init prices
-    let bid_prices: Vec<(f32, i32)> = vec![(3.0, 3), (2.0, 2), (1.0, 1)];
-    let ask_prices: Vec<(f32, i32)> = vec![(5.0, 5), (8.0, 8), (10.0, 10)];
-
-    // init bid limit order
-    for (price, times) in &bid_prices {
-        for _ in 0..*times {
-            let order: Order = Order::new(1, 1, "test".to_string(), Some(*price), 100, OrderSide::Bid, OrderType::Limit);
-            orderbook.bid(order).unwrap();
-        }
+    let bid_price_size: Vec<(f32, u32)> = vec![
+        (100.0, 100),
+        (99.0, 89),
+        (98.0, 67),
+        (97.0, 77),
+        (96.0, 67),
+        (95.0, 48),
+        (94.0, 42),
+        (93.0, 34),
+        (92.0, 20),
+        (91.0, 11),
+    ];
+    for (price, size) in &bid_price_size {
+        let order: Order = Order::new(
+            1,
+            1,
+            "test".to_string(),
+            Some(*price),
+            *size,
+            OrderSide::Bid,
+            OrderType::Limit,
+        );
+        orderbook.bid(order).unwrap();
     }
 
-    // init ask limit order
-    for (price, times) in &ask_prices {
-        for _ in 0..*times {
-            let order: Order = Order::new(1, 1, "test".to_string(), Some(*price), 100, OrderSide::Ask, OrderType::Limit);
-            orderbook.ask(order).unwrap();
-        }
+    let ask_price_size: Vec<(f32, u32)> = vec![
+        (105.0, 103),
+        (106.0, 77),
+        (107.0, 89),
+        (108.0, 73),
+        (109.0, 70),
+        (110.0, 41),
+        (111.0, 40),
+        (112.0, 32),
+        (113.0, 23),
+        (114.0, 9),
+    ];
+    for (price, size) in &ask_price_size {
+        let order: Order = Order::new(
+            2,
+            2,
+            "test".to_string(),
+            Some(*price),
+            *size,
+            OrderSide::Ask,
+            OrderType::Limit,
+        );
+        orderbook.ask(order).unwrap();
     }
+    /* bid_test(&orderbook);
+    ask_test(&orderbook); */
 
-    ask_test(&orderbook);
-    bid_test(&orderbook);
-
-    // limit order matching
-    let order: Order = Order::new(1, 1, "test".to_string(), Some(8.0), 2000, OrderSide::Bid, OrderType::Limit);
-    orderbook.bid(order).unwrap();
-
-    let order: Order = Order::new(1, 1, "test".to_string(), Some(2.0), 2000, OrderSide::Ask, OrderType::Limit);
+    let order = Order::new(
+        2,
+        2,
+        "test".to_string(),
+        Some(107.0),
+        40,
+        OrderSide::Ask,
+        OrderType::Limit,
+    );
     orderbook.ask(order).unwrap();
+    /* bid_test(&orderbook);
+    ask_test(&orderbook); */
 
-    ask_test(&orderbook);
-    bid_test(&orderbook);
+    let order = Order::new(
+        2,
+        2,
+        "test".to_string(),
+        None,
+        120,
+        OrderSide::Ask,
+        OrderType::Market,
+    );
+    orderbook.ask(order).unwrap();
+    /* bid_test(&orderbook);
+    ask_test(&orderbook); */
 
-    // market order matching
-    let order = Order::new(1, 1, "test".to_string(), None, 2000, OrderSide::Bid, OrderType::Market);
+    let order = Order::new(
+        2,
+        2,
+        "test".to_string(),
+        Some(100.0),
+        80,
+        OrderSide::Bid,
+        OrderType::Limit,
+    );
     orderbook.bid(order).unwrap();
+    /* bid_test(&orderbook);
+    ask_test(&orderbook); */
 
-    ask_test(&orderbook);
-    bid_test(&orderbook);
+    let order = Order::new(
+        2,
+        2,
+        "test".to_string(),
+        Some(104.0),
+        60,
+        OrderSide::Ask,
+        OrderType::Limit,
+    );
+    orderbook.ask(order).unwrap();
+    /* bid_test(&orderbook);
+    ask_test(&orderbook); */
+
+    let order = Order::new(
+        2,
+        2,
+        "test".to_string(),
+        None,
+        150,
+        OrderSide::Bid,
+        OrderType::Market,
+    );
+    orderbook.bid(order).unwrap();
+    /* bid_test(&orderbook);
+    ask_test(&orderbook); */
+
+    assert_eq!(orderbook.bid_price_level_volume(100.0).unwrap(), 80);
+    assert_eq!(orderbook.bid_price_level_volume(99.0).unwrap(), 69);
+    assert_eq!(orderbook.bid_price_level_volume(98.0).unwrap(), 67);
+    assert_eq!(orderbook.bid_price_level_volume(97.0).unwrap(), 77);
+    assert_eq!(orderbook.bid_price_level_volume(96.0).unwrap(), 67);
+    assert_eq!(orderbook.bid_price_level_volume(95.0).unwrap(), 48);
+    assert_eq!(orderbook.bid_price_level_volume(94.0).unwrap(), 42);
+    assert_eq!(orderbook.bid_price_level_volume(93.0).unwrap(), 34);
+    assert_eq!(orderbook.bid_price_level_volume(92.0).unwrap(), 20);
+    assert_eq!(orderbook.bid_price_level_volume(91.0).unwrap(), 11);
+
+    assert_eq!(orderbook.ask_price_level_volume(105.0).unwrap(), 13);
+    assert_eq!(orderbook.ask_price_level_volume(106.0).unwrap(), 77);
+    assert_eq!(orderbook.ask_price_level_volume(107.0).unwrap(), 129);
+    assert_eq!(orderbook.ask_price_level_volume(108.0).unwrap(), 73);
+    assert_eq!(orderbook.ask_price_level_volume(109.0).unwrap(), 70);
+    assert_eq!(orderbook.ask_price_level_volume(110.0).unwrap(), 41);
+    assert_eq!(orderbook.ask_price_level_volume(111.0).unwrap(), 40);
+    assert_eq!(orderbook.ask_price_level_volume(112.0).unwrap(), 32);
+    assert_eq!(orderbook.ask_price_level_volume(113.0).unwrap(), 23);
+    assert_eq!(orderbook.ask_price_level_volume(114.0).unwrap(), 9);
 }
 
 fn bid_test(orderbook: &OrderBook) {
@@ -60,11 +161,11 @@ fn bid_test(orderbook: &OrderBook) {
         let size = orderbook.bid_price_level_size(*price).unwrap();
         println!("price {price} => size: {size}, volume: {volume}");
     }
-    /* println!("bid price list: {price_list:?}");
+    println!("bid price list: {price_list:?}");
     let best_bid = orderbook.best_bid();
     println!("best bid: {best_bid:?}");
     let worst_bid = orderbook.worst_bid();
-    println!("worst bid: {worst_bid:?}"); */
+    println!("worst bid: {worst_bid:?}");
 }
 
 fn ask_test(orderbook: &OrderBook) {
@@ -77,9 +178,9 @@ fn ask_test(orderbook: &OrderBook) {
         let size = orderbook.ask_price_level_size(*price).unwrap();
         println!("price {price} => size: {size}, volume: {volume}");
     }
-    /* println!("ask price list: {price_list:?}");
+    println!("ask price list: {price_list:?}");
     let best_ask = orderbook.best_ask();
     println!("best ask: {best_ask:?}");
     let worst_ask = orderbook.worst_ask();
-    println!("worst ask: {worst_ask:?}"); */
+    println!("worst ask: {worst_ask:?}");
 }
