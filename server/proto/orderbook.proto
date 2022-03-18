@@ -1,0 +1,12 @@
+syntax = "proto3";
+package orderbook;
+
+message OrderBook {
+  repeated PriceSizePair ask_pairs = 1;
+  repeated PriceSizePair bid_pairs = 2;
+}
+
+message PriceSizePair {
+  float price = 1;
+  float size = 2;
+}

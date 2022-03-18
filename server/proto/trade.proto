@@ -1,0 +1,22 @@
+syntax = "proto3";
+import "order.proto";
+
+package trade;
+
+message Trade {
+  order.OrderSide init_side = 1;
+  order.OrderType init_type = 2;
+  repeated MatchedPair trades = 3;
+}
+
+message MatchedPair {
+  MatchedOrder init_order = 1;
+  repeated MatchedOrder matched_orders = 2;
+}
+
+message MatchedOrder {
+  uint32 order_id = 1;
+  uint32 user_id = 2;
+  float price = 3;
+  float amount = 4;
+}

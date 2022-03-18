@@ -1,11 +1,10 @@
-use crate::order::Order;
+use crate::order::{MatchedOrder, Order};
 use anyhow::{anyhow, Result};
-use std::cmp::min;
 
 #[derive(Debug)]
 pub struct PriceLevel {
-    price: f32,  // price limit of this price level
-    volume: u32, // total number of shares of all order in this price level
+    price: f32, // price limit of this price level
+    size: f32,  // total number of shares of all order in this price level
     orders: Vec<Order>,
 }
 
@@ -13,13 +12,13 @@ impl PriceLevel {
     pub fn new(price: f32) -> Self {
         Self {
             price,
-            volume: 0,
+            size: 0.0,
             orders: Vec::new(),
         }
     }
 
     pub fn add(&mut self, order: Order) -> Result<()> {
-        self.volume += order.quantity;
+        self.size += order.amount;
         self.orders.push(order);
 
         Ok(())
@@ -27,18 +26,18 @@ impl PriceLevel {
 
     pub fn remove(&mut self, order_id: u32) -> Result<()> {
         let (index, order): (usize, &Order) = self.get_order(order_id)?;
-        self.volume -= order.quantity;
+        self.size -= order.amount;
         self.orders.remove(index);
 
         Ok(())
     }
 
-    pub fn modify(&mut self, order_id: u32, order: Order) -> Result<()> {
+    /* pub fn modify(&mut self, order_id: u32, order: Order) -> Result<()> {
         self.remove(order_id)?;
         self.add(order)?;
 
         Ok(())
-    }
+    } */
 
     pub fn get_order(&self, order_id: u32) -> Result<(usize, &Order)> {
         for (index, order) in self.orders.iter().enumerate() {
@@ -50,37 +49,57 @@ impl PriceLevel {
         Err(anyhow!("order not found"))
     }
 
-    pub fn match_order(&mut self, match_order: &mut Order) -> Result<()> {
-        // println!("----------");
+    pub fn match_order(
+        &mut self,
+        init_order: &mut Order,
+    ) -> Result<(MatchedOrder, Vec<MatchedOrder>)> {
+        let mut matched_orders: Vec<MatchedOrder> = Vec::new();
+        let mut total_matched_amount: f32 = 0.0;
         let mut num_removed = 0;
         for order in &mut self.orders {
-            let num_quantity = min(match_order.quantity, order.quantity);
-            match_order.quantity -= num_quantity;
-            order.quantity -= num_quantity;
-            self.volume -= num_quantity;
+            let num_amount = if init_order.amount < order.amount {
+                init_order.amount
+            } else {
+                order.amount
+            };
+            init_order.amount -= num_amount;
+            order.amount -= num_amount;
+            self.size -= num_amount;
+            total_matched_amount += num_amount;
 
-            if order.quantity == 0 {
+            matched_orders.push(MatchedOrder::new(
+                order.order_id,
+                order.user_id,
+                self.price,
+                num_amount,
+            ));
+
+            if order.amount == 0.0 {
                 num_removed += 1;
             }
 
-            // println!("{order:?}");
-
-            if match_order.quantity == 0 {
+            if init_order.amount == 0.0 {
                 break;
             }
         }
-
         self.orders.drain(0..num_removed);
 
-        Ok(())
+        let init_order = MatchedOrder::new(
+            init_order.order_id,
+            init_order.user_id,
+            self.price,
+            total_matched_amount,
+        );
+
+        Ok((init_order, matched_orders))
     }
 
-    pub fn size(&self) -> u32 {
+    pub fn num_order(&self) -> u32 {
         self.orders.len().try_into().unwrap()
     }
 
-    pub fn volume(&self) -> u32 {
-        self.volume
+    pub fn size(&self) -> f32 {
+        self.size
     }
 
     pub fn is_empty(&self) -> bool {

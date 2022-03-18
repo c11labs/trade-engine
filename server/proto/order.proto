@@ -1,0 +1,22 @@
+syntax = "proto3";
+package order;
+
+enum OrderSide {
+  ASK = 0;
+  BID = 1;
+}
+
+enum OrderType {
+  LIMIT = 0;
+  MARKET = 1;
+}
+
+message Order {
+  uint32 order_id = 1;
+  uint32 user_id = 2;
+  string pair = 3;
+  float price = 4;
+  float amount = 5;
+  OrderSide side = 6;
+  OrderType type = 7;
+}
