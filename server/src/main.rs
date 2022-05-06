@@ -2,6 +2,7 @@ use clap::Parser;
 use orderbook::OrderBook;
 use server::consumer::consume_stream;
 use server::utils::Args;
+use std::env;
 
 #[tokio::main]
 async fn main() {
@@ -12,12 +13,18 @@ async fn main() {
     let trade_topic: String = format!("{}-trades", orderbook.pair());
     let orderbook_data_topic: String = format!("{}-orderbook-data", orderbook.pair());
 
+    let kafka_producer_broker: String = env::var("KAFKA_PRODUCER_BROKER").unwrap();
+    let kafka_consumer_broker: String = env::var("KAFKA_CONSUMER_BROKER").unwrap();
+
+    println!("kafka producer broker: {kafka_producer_broker}");
+    println!("kafka consumer broker: {kafka_consumer_broker}");
     println!("incoming topic: {incoming_topic}");
     println!("trade topic: {trade_topic}");
     println!("orderbook data topic: {orderbook_data_topic}");
 
     if let Err(err) = consume_stream(
-        "localhost:9093",
+        &kafka_producer_broker,
+        &kafka_consumer_broker,
         &incoming_topic,
         &trade_topic,
         &orderbook_data_topic,

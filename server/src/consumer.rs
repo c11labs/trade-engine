@@ -86,14 +86,15 @@ fn process<M: KafkaMessage>(
 }
 
 pub async fn consume_stream(
-    brokers: &str,
+    producer_broker: &str,
+    consumer_broker: &str,
     incoming_topic: &str,
     trade_topic: &str,
     orderbook_data_topic: &str,
     pair: &str,
     orderbook: &mut OrderBook,
 ) -> Result<()> {
-    let producer = create_producer(brokers);
+    let producer = create_producer(producer_broker);
 
     let send_data_to_kafka = move |trade: Vec<u8>, orderbook_data: Vec<u8>| {
         let producer = producer.clone();
@@ -120,7 +121,7 @@ pub async fn consume_stream(
         }
     };
 
-    let consumer = create_consumer(brokers, orderbook.pair(), incoming_topic);
+    let consumer = create_consumer(consumer_broker, orderbook.pair(), incoming_topic);
     loop {
         match consumer.recv().await {
             Ok(message) => {
