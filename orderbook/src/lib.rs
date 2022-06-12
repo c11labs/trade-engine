@@ -94,7 +94,7 @@ impl OrderBook {
             }
             OrderType::Market => {
                 for ask_price in price_list.iter() {
-                    if order.amount == 0.0 {
+                    if order.amount == 0.0 || order.allowance == 0.0 {
                         break;
                     }
                     let (init_order, matched_orders): (MatchedOrder, Vec<MatchedOrder>) =
@@ -145,7 +145,7 @@ impl OrderBook {
             }
             OrderType::Market => {
                 for bid_price in price_list.iter() {
-                    if order.amount == 0.0 {
+                    if order.amount == 0.0 || order.allowance == 0.0 {
                         break;
                     }
                     let (init_order, matched_orders): (MatchedOrder, Vec<MatchedOrder>) =

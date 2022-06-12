@@ -17,16 +17,9 @@ impl From<f32> for AskPrice {
     }
 }
 
-/* pub trait Summary {
-    fn best_price(&self) -> f32;
-    fn worst_price(&self) -> f32;
-} */
-
 #[derive(Debug)]
 pub struct OrderTree<T> {
     tree: BTreeMap<T, PriceLevel>,
-    // best_price: T,
-    // worst_price: T,
     price_list: Vec<T>,
 }
 
@@ -34,8 +27,6 @@ impl OrderTree<BidPrice> {
     pub fn new() -> Self {
         Self {
             tree: BTreeMap::new(),
-            // best_price: BidPrice(f32::NEG_INFINITY),
-            // worst_price: BidPrice(f32::INFINITY),
             price_list: Vec::new(),
         }
     }
@@ -45,8 +36,6 @@ impl OrderTree<AskPrice> {
     pub fn new() -> Self {
         Self {
             tree: BTreeMap::new(),
-            // best_price: AskPrice(f32::INFINITY),
-            // worst_price: AskPrice(f32::NEG_INFINITY),
             price_list: Vec::new(),
         }
     }
@@ -57,14 +46,6 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
         let limit = PriceLevel::new(price);
         let price = T::from(price);
         self.tree.insert(price, limit);
-
-        /* if self.best_price > price {
-            self.best_price = price;
-        }
-
-        if self.worst_price < price {
-            self.worst_price = price;
-        } */
 
         Ok(())
     }
@@ -152,12 +133,4 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
 
         pairs
     }
-
-    /* pub fn best_price(&self) -> f32 {
-        self.best_price.into_inner()
-    }
-
-    pub fn worst_price(&self) -> f32 {
-        self.worst_price.into_inner()
-    } */
 }

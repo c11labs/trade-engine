@@ -11,6 +11,7 @@ fn price_level_test() {
     let order = Order::new(
         order_id,
         1,
+        None,
         "GOOGLE".to_string(),
         Some(price),
         100.0,

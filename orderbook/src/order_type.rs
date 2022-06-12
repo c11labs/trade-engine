@@ -1,6 +1,7 @@
-#[derive(Debug, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum OrderType {
     Limit,
     Market,
-    // Stop,
+    /* StopLimit,
+    Oco */
 }

@@ -1,4 +1,6 @@
 use crate::order::{MatchedOrder, Order};
+use crate::order_side::OrderSide;
+use crate::order_type::OrderType;
 use anyhow::{anyhow, Result};
 
 #[derive(Debug)]
@@ -6,6 +8,14 @@ pub struct PriceLevel {
     price: f32, // price limit of this price level
     size: f32,  // total number of shares of all order in this price level
     orders: Vec<Order>,
+}
+
+fn min(a: f32, b: f32) -> f32 {
+    if a < b {
+        a
+    } else {
+        b
+    }
 }
 
 impl PriceLevel {
@@ -32,13 +42,6 @@ impl PriceLevel {
         Ok(())
     }
 
-    /* pub fn modify(&mut self, order_id: u32, order: Order) -> Result<()> {
-        self.remove(order_id)?;
-        self.add(order)?;
-
-        Ok(())
-    } */
-
     pub fn get_order(&self, order_id: u32) -> Result<(usize, &Order)> {
         for (index, order) in self.orders.iter().enumerate() {
             if order.order_id == order_id {
@@ -55,34 +58,54 @@ impl PriceLevel {
     ) -> Result<(MatchedOrder, Vec<MatchedOrder>)> {
         let mut matched_orders: Vec<MatchedOrder> = Vec::new();
         let mut total_matched_amount: f32 = 0.0;
-        let mut num_removed = 0;
+        let mut num_order_removed = 0;
+
         for order in &mut self.orders {
-            let num_amount = if init_order.amount < order.amount {
-                init_order.amount
-            } else {
-                order.amount
+            let amount = match init_order.r#type {
+                OrderType::Market => match init_order.side {
+                    OrderSide::Ask => min(init_order.amount, order.amount),
+                    OrderSide::Bid => {
+                        let available_amount = init_order.allowance / self.price;
+                        min(available_amount, order.amount)
+                    }
+                },
+                OrderType::Limit => min(init_order.amount, order.amount),
             };
-            init_order.amount -= num_amount;
-            order.amount -= num_amount;
-            self.size -= num_amount;
-            total_matched_amount += num_amount;
+
+            match init_order.side {
+                OrderSide::Ask => {
+                    init_order.allowance -= amount;
+                    // println!("ask {}", init_order.allowance);
+                }
+                OrderSide::Bid => {
+                    init_order.allowance -= self.price * amount;
+                    // println!("bid {}", init_order.allowance);
+                }
+            };
+
+            init_order.amount -= amount;
+            order.amount -= amount;
+            self.size -= amount;
+            total_matched_amount += amount;
 
             matched_orders.push(MatchedOrder::new(
                 order.order_id,
                 order.user_id,
                 self.price,
-                num_amount,
+                amount,
             ));
 
             if order.amount == 0.0 {
-                num_removed += 1;
+                num_order_removed += 1;
             }
 
-            if init_order.amount == 0.0 {
+            if init_order.amount == 0.0
+                || (init_order.r#type == OrderType::Market && init_order.allowance == 0.0)
+            {
                 break;
             }
         }
-        self.orders.drain(0..num_removed);
+        self.orders.drain(0..num_order_removed);
 
         let init_order = MatchedOrder::new(
             init_order.order_id,

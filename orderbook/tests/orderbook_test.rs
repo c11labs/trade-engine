@@ -5,7 +5,7 @@ use orderbook::order_side::OrderSide;
 use orderbook::order_type::OrderType;
 use orderbook::OrderBook;
 
-#[test]
+// #[test]
 fn orderbook_test_error() {
     let mut orderbook: OrderBook = OrderBook::new(String::from("test"));
     assert_eq!(orderbook.pair(), "test");
@@ -13,14 +13,15 @@ fn orderbook_test_error() {
     let order = Order::new(
         2,
         2,
+        1000.0,
         "test".to_string(),
         None,
         40.0,
         OrderSide::Ask,
         OrderType::Limit,
     );
-    if let Err(_err) = orderbook.add(order) {
-        // println!("{err:?}");
+    if let Err(err) = orderbook.add(order) {
+        println!("{err:?}");
     };
 }
 
@@ -31,17 +32,17 @@ fn orderbook_test() {
 
     let bid_price_size: Vec<(f32, f32)> = vec![
         (100.0, 10.0),
-        (100.0, 20.0),
-        (100.0, 30.0),
+        /* (100.0, 20.0),
+        (100.0, 30.0), */
         (99.0, 89.0),
-        (98.0, 67.0),
+        /* (98.0, 67.0),
         (97.0, 77.0),
         (96.0, 67.0),
         (95.0, 48.0),
         (94.0, 42.0),
         (93.0, 34.0),
         (92.0, 20.0),
-        (91.0, 11.5),
+        (91.0, 11.5), */
     ];
     let mut id = 0;
     for (price, size) in &bid_price_size {
@@ -49,19 +50,21 @@ fn orderbook_test() {
         let order: Order = Order::new(
             id,
             id,
+            0.0,
             "test".to_string(),
             Some(*price),
             *size,
             OrderSide::Bid,
             OrderType::Limit,
         );
+        println!("{order:?}");
         orderbook.add(order).unwrap();
     }
 
     let ask_price_size: Vec<(f32, f32)> = vec![
         (105.0, 103.0),
         (106.0, 77.0),
-        (107.0, 89.0),
+        /* (107.0, 89.0),
         (108.0, 73.0),
         (109.0, 70.0),
         (110.0, 41.0),
@@ -69,26 +72,46 @@ fn orderbook_test() {
         (112.0, 32.0),
         (113.0, 23.0),
         (114.0, 9.0),
-        (114.0, 90.0),
+        (114.0, 90.0), */
     ];
-    let mut id = 0;
     for (price, size) in &ask_price_size {
         id += 1;
         let order: Order = Order::new(
             id,
             id,
+            0.0,
             "test".to_string(),
             Some(*price),
             *size,
             OrderSide::Ask,
             OrderType::Limit,
         );
+        println!("{order:?}");
         orderbook.add(order).unwrap();
     }
 
-    let order = Order::new(
+    let order: Order = Order::new(
+        id + 1,
+        id + 1,
+        15000.0,
+        "test".to_string(),
+        None,
+        200.0,
+        OrderSide::Bid,
+        OrderType::Market,
+    );
+    println!("{order:?}");
+    if let Some(trade) = orderbook.add(order).unwrap() {
+        println!("{trade:#?}");
+    }
+
+    bid_test(&orderbook);
+    ask_test(&orderbook);
+
+    /* let order = Order::new(
         2,
         2,
+        None,
         "test".to_string(),
         Some(107.0),
         40.0,
@@ -100,6 +123,7 @@ fn orderbook_test() {
     let order = Order::new(
         2,
         2,
+        Some(1000.0),
         "test".to_string(),
         None,
         120.0,
@@ -111,6 +135,7 @@ fn orderbook_test() {
     let order = Order::new(
         2,
         2,
+        None,
         "test".to_string(),
         Some(100.0),
         80.0,
@@ -122,6 +147,7 @@ fn orderbook_test() {
     let order = Order::new(
         2,
         2,
+        None,
         "test".to_string(),
         Some(104.0),
         60.0,
@@ -133,6 +159,7 @@ fn orderbook_test() {
     let order = Order::new(
         2,
         2,
+        Some(1000.0),
         "test".to_string(),
         None,
         150.0,
@@ -146,6 +173,7 @@ fn orderbook_test() {
     let order = Order::new(
         2,
         2,
+        None,
         "test".to_string(),
         Some(110.0),
         1000.0,
@@ -188,6 +216,7 @@ fn orderbook_test() {
     let order = Order::new(
         10,
         10,
+        None,
         "test".to_string(),
         Some(114.0),
         0.0,
@@ -208,6 +237,7 @@ fn orderbook_test() {
         let order = Order::new(
             index,
             index,
+            None,
             "test".to_string(),
             Some(price),
             0.0,
@@ -220,7 +250,7 @@ fn orderbook_test() {
         index += 1;
     }
     /* bid_test(&orderbook);
-    ask_test(&orderbook); */
+    ask_test(&orderbook); */ */
 }
 
 fn bid_test(orderbook: &OrderBook) {

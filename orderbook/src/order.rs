@@ -7,6 +7,7 @@ pub struct Order {
     pub order_id: u32,
     pub user_id: u32,
     pub pair: String,
+    pub allowance: f32,
     pub amount: f32,
     pub price: Option<f32>,
     pub side: OrderSide,
@@ -17,6 +18,7 @@ impl Order {
     pub fn new(
         order_id: u32,
         user_id: u32,
+        allowance: f32,
         pair: String,
         price: Option<f32>,
         amount: f32,
@@ -26,6 +28,7 @@ impl Order {
         Self {
             order_id,
             user_id,
+            allowance,
             pair,
             price,
             amount,
