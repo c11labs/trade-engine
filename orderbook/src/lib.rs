@@ -8,14 +8,14 @@ pub mod price_level;
 pub mod trade;
 
 use anyhow::{Context, Result};
-use order::{MatchedOrder, Order};
+use order::Order;
 use order_side::OrderSide;
 use order_tree::OrderTree;
 use order_type::OrderType;
 use ordered_float::OrderedFloat;
 use pair::PriceSizePair;
 use price::{AskPrice, BidPrice, IntoInner};
-use trade::{MatchedPair, Trade};
+use trade::{MatchedOrder, MatchedPair, Trade};
 
 type PriceSizePairs = Vec<PriceSizePair>;
 
@@ -52,7 +52,7 @@ impl OrderBook {
 
     fn m_match_order(
         &mut self,
-        price: f32,
+        price: f64,
         order: &mut Order,
         side: OrderSide,
     ) -> Result<(MatchedOrder, Vec<MatchedOrder>)> {
@@ -82,9 +82,11 @@ impl OrderBook {
                     let (init_order, matched_orders): (MatchedOrder, Vec<MatchedOrder>) =
                         self.m_match_order(ask_price.into_inner(), &mut order, OrderSide::Bid)?;
                     trade.init_type = OrderType::Limit;
-                    trade
-                        .trades
-                        .push(MatchedPair::new(init_order, matched_orders));
+                    trade.trades.push(MatchedPair::new(
+                        ask_price.into_inner(),
+                        init_order,
+                        matched_orders,
+                    ));
                     matched = true;
                 }
 
@@ -100,9 +102,11 @@ impl OrderBook {
                     let (init_order, matched_orders): (MatchedOrder, Vec<MatchedOrder>) =
                         self.m_match_order(ask_price.into_inner(), &mut order, OrderSide::Bid)?;
                     trade.init_type = OrderType::Market;
-                    trade
-                        .trades
-                        .push(MatchedPair::new(init_order, matched_orders));
+                    trade.trades.push(MatchedPair::new(
+                        ask_price.into_inner(),
+                        init_order,
+                        matched_orders,
+                    ));
                     matched = true;
                 }
             }
@@ -133,9 +137,11 @@ impl OrderBook {
                     let (init_order, matched_orders): (MatchedOrder, Vec<MatchedOrder>) =
                         self.m_match_order(bid_price.into_inner(), &mut order, OrderSide::Ask)?;
                     trade.init_type = OrderType::Limit;
-                    trade
-                        .trades
-                        .push(MatchedPair::new(init_order, matched_orders));
+                    trade.trades.push(MatchedPair::new(
+                        bid_price.into_inner(),
+                        init_order,
+                        matched_orders,
+                    ));
                     matched = true;
                 }
 
@@ -151,9 +157,11 @@ impl OrderBook {
                     let (init_order, matched_orders): (MatchedOrder, Vec<MatchedOrder>) =
                         self.m_match_order(bid_price.into_inner(), &mut order, OrderSide::Ask)?;
                     trade.init_type = OrderType::Market;
-                    trade
-                        .trades
-                        .push(MatchedPair::new(init_order, matched_orders));
+                    trade.trades.push(MatchedPair::new(
+                        bid_price.into_inner(),
+                        init_order,
+                        matched_orders,
+                    ));
                     matched = true;
                 }
             }
@@ -173,7 +181,7 @@ impl OrderBook {
         }
     }
 
-    pub fn cancel(&mut self, side: OrderSide, price: f32, order_id: u32) -> Result<()> {
+    pub fn cancel(&mut self, side: OrderSide, price: f64, order_id: u32) -> Result<()> {
         match side {
             OrderSide::Ask => self.ask.remove_order(price, order_id)?,
             OrderSide::Bid => self.bid.remove_order(price, order_id)?,
@@ -184,8 +192,8 @@ impl OrderBook {
     pub fn modify(
         &mut self,
         mut order: Order,
-        new_price: Option<f32>,
-        new_amount: Option<f32>,
+        new_price: Option<f64>,
+        new_amount: Option<f64>,
     ) -> Result<Option<Trade>> {
         if let Ok(()) = self.cancel(
             order.side,
@@ -204,21 +212,21 @@ impl OrderBook {
         Ok(None)
     }
 
-    pub fn size(&self, price: f32, side: OrderSide) -> Result<f32> {
+    pub fn size(&self, price: f64, side: OrderSide) -> Result<f64> {
         match side {
             OrderSide::Ask => Ok(self.ask.price_level_size(price)?),
             OrderSide::Bid => Ok(self.bid.price_level_size(price)?),
         }
     }
 
-    pub fn num_order(&self, price: f32, side: OrderSide) -> Result<u32> {
+    pub fn num_order(&self, price: f64, side: OrderSide) -> Result<u32> {
         match side {
             OrderSide::Ask => Ok(self.ask.price_level_num_order(price)?),
             OrderSide::Bid => Ok(self.bid.price_level_num_order(price)?),
         }
     }
 
-    pub fn price_list(&self, side: OrderSide) -> Vec<f32> {
+    pub fn price_list(&self, side: OrderSide) -> Vec<f64> {
         match side {
             OrderSide::Ask => self
                 .ask
@@ -239,22 +247,22 @@ impl OrderBook {
         (self.ask.price_and_size(), self.bid.price_and_size())
     }
 
-    /* pub fn best_price(&self, side: OrderSide) -> f32 {
+    /* pub fn best_price(&self, side: OrderSide) -> f64 {
         match side {
             OrderSide::Ask => self.ask.best_price(),
             OrderSide::Bid => self.bid.best_price(),
         }
     } */
 
-    /* pub fn mid_price(&self) -> f32 {
+    /* pub fn mid_price(&self) -> f64 {
         (self.best_price(OrderSide::Ask) + self.best_price(OrderSide::Bid)) / 2.0
     }
 
-    pub fn bid_ask_spread(&self) -> f32 {
+    pub fn bid_ask_spread(&self) -> f64 {
         self.best_price(OrderSide::Ask) - self.best_price(OrderSide::Bid)
     } */
 
-    /* pub fn market_depth(&self) -> f32 {
+    /* pub fn market_depth(&self) -> f64 {
         self.worst_ask() - self.worst_bid()
     } */
 

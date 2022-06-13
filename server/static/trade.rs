@@ -9,9 +9,11 @@ pub struct Trade {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MatchedPair {
-    #[prost(message, optional, tag = "1")]
+    #[prost(double, tag = "1")]
+    pub price: f64,
+    #[prost(message, optional, tag = "2")]
     pub init_order: ::core::option::Option<MatchedOrder>,
-    #[prost(message, repeated, tag = "2")]
+    #[prost(message, repeated, tag = "3")]
     pub matched_orders: ::prost::alloc::vec::Vec<MatchedOrder>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -20,8 +22,6 @@ pub struct MatchedOrder {
     pub order_id: u32,
     #[prost(uint32, tag = "2")]
     pub user_id: u32,
-    #[prost(float, tag = "3")]
-    pub price: f32,
-    #[prost(float, tag = "4")]
-    pub amount: f32,
+    #[prost(double, tag = "3")]
+    pub amount: f64,
 }

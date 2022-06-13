@@ -1,5 +1,5 @@
 #[derive(Debug)]
 pub struct PriceSizePair {
-    pub price: f32,
-    pub size: f32,
+    pub price: f64,
+    pub size: f64,
 }

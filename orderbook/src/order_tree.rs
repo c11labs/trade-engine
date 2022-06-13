@@ -1,18 +1,19 @@
-use crate::order::{MatchedOrder, Order};
+use crate::order::Order;
 use crate::pair::PriceSizePair;
 use crate::price::{AskPrice, BidPrice, IntoInner};
 use crate::price_level::PriceLevel;
+use crate::trade::MatchedOrder;
 use anyhow::{bail, Context, Result};
 use std::collections::BTreeMap;
 
-impl From<f32> for BidPrice {
-    fn from(price: f32) -> Self {
+impl From<f64> for BidPrice {
+    fn from(price: f64) -> Self {
         Self(price)
     }
 }
 
-impl From<f32> for AskPrice {
-    fn from(price: f32) -> Self {
+impl From<f64> for AskPrice {
+    fn from(price: f64) -> Self {
         Self(price)
     }
 }
@@ -41,8 +42,8 @@ impl OrderTree<AskPrice> {
     }
 }
 
-impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> OrderTree<T> {
-    fn m_add_price_level(&mut self, price: f32) -> Result<()> {
+impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f64>> OrderTree<T> {
+    fn m_add_price_level(&mut self, price: f64) -> Result<()> {
         let limit = PriceLevel::new(price);
         let price = T::from(price);
         self.tree.insert(price, limit);
@@ -50,7 +51,7 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
         Ok(())
     }
 
-    pub fn add_order(&mut self, price: f32, order: Order) -> Result<()> {
+    pub fn add_order(&mut self, price: f64, order: Order) -> Result<()> {
         match self.tree.get_mut(&T::from(price)) {
             Some(price_level) => {
                 price_level.add(order)?;
@@ -68,7 +69,7 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
         Ok(())
     }
 
-    pub fn remove_order(&mut self, price: f32, order_id: u32) -> Result<()> {
+    pub fn remove_order(&mut self, price: f64, order_id: u32) -> Result<()> {
         match self.tree.get_mut(&T::from(price)) {
             Some(price_level) => {
                 price_level.remove(order_id)?;
@@ -86,7 +87,7 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
 
     pub fn match_order(
         &mut self,
-        price: f32,
+        price: f64,
         order: &mut Order,
     ) -> Result<(MatchedOrder, Vec<MatchedOrder>)> {
         let price_level = self
@@ -104,7 +105,7 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
         Ok((init_order, matched_orders))
     }
 
-    pub fn contains_price(&self, price: f32) -> bool {
+    pub fn contains_price(&self, price: f64) -> bool {
         self.tree.contains_key(&T::from(price))
     }
 
@@ -112,12 +113,12 @@ impl<T: IntoInner + PartialEq + PartialOrd + Ord + Clone + Copy + From<f32>> Ord
         self.price_list.clone()
     }
 
-    pub fn price_level_num_order(&self, price: f32) -> Result<u32> {
+    pub fn price_level_num_order(&self, price: f64) -> Result<u32> {
         let price_level = self.tree.get(&T::from(price)).context("price not found")?;
         Ok(price_level.num_order())
     }
 
-    pub fn price_level_size(&self, price: f32) -> Result<f32> {
+    pub fn price_level_size(&self, price: f64) -> Result<f64> {
         let price_level = self.tree.get(&T::from(price)).context("price not found")?;
         Ok(price_level.size())
     }

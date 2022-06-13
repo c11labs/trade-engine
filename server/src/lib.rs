@@ -20,11 +20,11 @@ pub mod proto {
 }
 
 use orderbook::{
-    order::{MatchedOrder, Order},
+    order::Order,
     order_side::OrderSide,
     order_type::OrderType,
     pair::PriceSizePair,
-    trade::{MatchedPair, Trade},
+    trade::{MatchedOrder, MatchedPair, Trade},
 };
 use proto::{
     order::Order as OrderMessage,
@@ -41,6 +41,7 @@ impl From<OrderMessage> for Order {
         Self {
             order_id: item.order_id,
             user_id: item.user_id,
+            allowance: item.allowance,
             pair: item.pair,
             price: if item.price == 0.0 {
                 None
@@ -56,6 +57,8 @@ impl From<OrderMessage> for Order {
             r#type: match item.r#type {
                 0 => OrderType::Limit,
                 1 => OrderType::Market,
+                /* 2 => OrderType::StopLimit,
+                3 => OrderType::Oco, */
                 _ => OrderType::Limit,
             },
         }
@@ -67,7 +70,6 @@ impl From<MatchedOrder> for MatchedOrderMessage {
         Self {
             order_id: item.order_id,
             user_id: item.user_id,
-            price: item.price,
             amount: item.amount,
         }
     }
@@ -76,6 +78,7 @@ impl From<MatchedOrder> for MatchedOrderMessage {
 impl From<MatchedPair> for MatchedPairMessage {
     fn from(item: MatchedPair) -> Self {
         Self {
+            price: item.price,
             init_order: Some(MatchedOrderMessage::from(item.init_order)),
             matched_orders: item
                 .matched_orders
@@ -96,6 +99,8 @@ impl From<Trade> for TradeMessage {
             init_type: match item.init_type {
                 OrderType::Limit => 0,
                 OrderType::Market => 1,
+                /* OrderType::StopLimit => 2,
+                OrderType::Oco => 3, */
             },
             trades: item
                 .trades

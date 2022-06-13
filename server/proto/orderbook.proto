@@ -7,6 +7,6 @@ message OrderBook {
 }
 
 message PriceSizePair {
-  float price = 1;
-  float size = 2;
+  double price = 1;
+  double size = 2;
 }

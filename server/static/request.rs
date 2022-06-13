@@ -7,8 +7,8 @@ pub struct Add {
 pub struct Cancel {
     #[prost(enumeration = "super::order::OrderSide", tag = "1")]
     pub side: i32,
-    #[prost(float, tag = "2")]
-    pub price: f32,
+    #[prost(double, tag = "2")]
+    pub price: f64,
     #[prost(uint32, tag = "3")]
     pub order_id: u32,
 }
@@ -16,10 +16,10 @@ pub struct Cancel {
 pub struct Modify {
     #[prost(message, optional, tag = "1")]
     pub order: ::core::option::Option<super::order::Order>,
-    #[prost(float, tag = "2")]
-    pub new_price: f32,
-    #[prost(float, tag = "3")]
-    pub new_amount: f32,
+    #[prost(double, tag = "2")]
+    pub new_price: f64,
+    #[prost(double, tag = "3")]
+    pub new_amount: f64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Request {

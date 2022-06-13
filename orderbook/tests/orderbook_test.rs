@@ -30,21 +30,21 @@ fn orderbook_test() {
     let mut orderbook: OrderBook = OrderBook::new(String::from("test"));
     assert_eq!(orderbook.pair(), "test");
 
-    let bid_price_size: Vec<(f32, f32)> = vec![
+    let mut id = 0;
+    let bid_price_size: Vec<(f64, f64)> = vec![
         (100.0, 10.0),
-        /* (100.0, 20.0),
-        (100.0, 30.0), */
+        (100.0, 20.0),
+        (100.0, 30.0),
         (99.0, 89.0),
-        /* (98.0, 67.0),
+        (98.0, 67.0),
         (97.0, 77.0),
         (96.0, 67.0),
         (95.0, 48.0),
         (94.0, 42.0),
         (93.0, 34.0),
         (92.0, 20.0),
-        (91.0, 11.5), */
+        (91.0, 11.5),
     ];
-    let mut id = 0;
     for (price, size) in &bid_price_size {
         id += 1;
         let order: Order = Order::new(
@@ -61,10 +61,10 @@ fn orderbook_test() {
         orderbook.add(order).unwrap();
     }
 
-    let ask_price_size: Vec<(f32, f32)> = vec![
+    let ask_price_size: Vec<(f64, f64)> = vec![
         (105.0, 103.0),
         (106.0, 77.0),
-        /* (107.0, 89.0),
+        (107.0, 89.0),
         (108.0, 73.0),
         (109.0, 70.0),
         (110.0, 41.0),
@@ -72,7 +72,7 @@ fn orderbook_test() {
         (112.0, 32.0),
         (113.0, 23.0),
         (114.0, 9.0),
-        (114.0, 90.0), */
+        (114.0, 90.0),
     ];
     for (price, size) in &ask_price_size {
         id += 1;
@@ -93,11 +93,11 @@ fn orderbook_test() {
     let order: Order = Order::new(
         id + 1,
         id + 1,
-        15000.0,
+        200.0,
         "test".to_string(),
         None,
         200.0,
-        OrderSide::Bid,
+        OrderSide::Ask,
         OrderType::Market,
     );
     println!("{order:?}");

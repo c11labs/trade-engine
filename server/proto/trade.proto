@@ -10,13 +10,13 @@ message Trade {
 }
 
 message MatchedPair {
-  MatchedOrder init_order = 1;
-  repeated MatchedOrder matched_orders = 2;
+  double price = 1;
+  MatchedOrder init_order = 2;
+  repeated MatchedOrder matched_orders = 3;
 }
 
 message MatchedOrder {
   uint32 order_id = 1;
   uint32 user_id = 2;
-  float price = 3;
-  float amount = 4;
+  double amount = 3;
 }

@@ -9,14 +9,17 @@ enum OrderSide {
 enum OrderType {
   LIMIT = 0;
   MARKET = 1;
+  STOP_LIMIT = 2;
+  OCO = 3;
 }
 
 message Order {
   uint32 order_id = 1;
   uint32 user_id = 2;
-  string pair = 3;
-  float price = 4;
-  float amount = 5;
-  OrderSide side = 6;
-  OrderType type = 7;
+  double allowance = 3;
+  string pair = 4;
+  double price = 5;
+  double amount = 6;
+  OrderSide side = 7;
+  OrderType type = 8;
 }

@@ -65,12 +65,12 @@ fn process<M: KafkaMessage>(
             new_amount,
         }) => {
             let order = Order::from(order.context("error deserialize order")?);
-            let new_price: Option<f32> = if new_price > 0.0 {
+            let new_price: Option<f64> = if new_price > 0.0 {
                 Some(new_price)
             } else {
                 None
             };
-            let new_amount: Option<f32> = if new_amount > 0.0 {
+            let new_amount: Option<f64> = if new_amount > 0.0 {
                 Some(new_amount)
             } else {
                 None

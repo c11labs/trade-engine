@@ -7,7 +7,7 @@ fn order_test() {
     let order = Order::new(
         1,
         1,
-        Some(100.0),
+        100.0,
         String::from("GOOG"),
         Some(1.0),
         100.10,

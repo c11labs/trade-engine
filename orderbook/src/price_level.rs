@@ -1,16 +1,17 @@
-use crate::order::{MatchedOrder, Order};
+use crate::order::Order;
 use crate::order_side::OrderSide;
 use crate::order_type::OrderType;
+use crate::trade::MatchedOrder;
 use anyhow::{anyhow, Result};
 
 #[derive(Debug)]
 pub struct PriceLevel {
-    price: f32, // price limit of this price level
-    size: f32,  // total number of shares of all order in this price level
+    price: f64, // price limit of this price level
+    size: f64,  // total number of shares of all order in this price level
     orders: Vec<Order>,
 }
 
-fn min(a: f32, b: f32) -> f32 {
+fn min(a: f64, b: f64) -> f64 {
     if a < b {
         a
     } else {
@@ -19,7 +20,7 @@ fn min(a: f32, b: f32) -> f32 {
 }
 
 impl PriceLevel {
-    pub fn new(price: f32) -> Self {
+    pub fn new(price: f64) -> Self {
         Self {
             price,
             size: 0.0,
@@ -57,7 +58,7 @@ impl PriceLevel {
         init_order: &mut Order,
     ) -> Result<(MatchedOrder, Vec<MatchedOrder>)> {
         let mut matched_orders: Vec<MatchedOrder> = Vec::new();
-        let mut total_matched_amount: f32 = 0.0;
+        let mut total_matched_amount: f64 = 0.0;
         let mut num_order_removed = 0;
 
         for order in &mut self.orders {
@@ -88,19 +89,14 @@ impl PriceLevel {
             self.size -= amount;
             total_matched_amount += amount;
 
-            matched_orders.push(MatchedOrder::new(
-                order.order_id,
-                order.user_id,
-                self.price,
-                amount,
-            ));
+            matched_orders.push(MatchedOrder::new(order.order_id, order.user_id, amount));
 
-            if order.amount == 0.0 {
+            if order.amount <= 0.0 {
                 num_order_removed += 1;
             }
 
-            if init_order.amount == 0.0
-                || (init_order.r#type == OrderType::Market && init_order.allowance == 0.0)
+            if init_order.amount <= 0.0
+                || (init_order.r#type == OrderType::Market && init_order.allowance <= 0.0)
             {
                 break;
             }
@@ -110,7 +106,6 @@ impl PriceLevel {
         let init_order = MatchedOrder::new(
             init_order.order_id,
             init_order.user_id,
-            self.price,
             total_matched_amount,
         );
 
@@ -121,7 +116,7 @@ impl PriceLevel {
         self.orders.len().try_into().unwrap()
     }
 
-    pub fn size(&self) -> f32 {
+    pub fn size(&self) -> f64 {
         self.size
     }
 

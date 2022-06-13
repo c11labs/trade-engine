@@ -3,14 +3,14 @@ use std::cmp::Ordering;
 use std::cmp::PartialEq;
 
 pub trait IntoInner {
-    fn into_inner(self) -> f32;
+    fn into_inner(self) -> f64;
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct BidPrice(pub f32);
+pub struct BidPrice(pub f64);
 
 impl IntoInner for BidPrice {
-    fn into_inner(self) -> f32 {
+    fn into_inner(self) -> f64 {
         self.0
     }
 }
@@ -49,10 +49,10 @@ impl Ord for BidPrice {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct AskPrice(pub f32);
+pub struct AskPrice(pub f64);
 
 impl IntoInner for AskPrice {
-    fn into_inner(self) -> f32 {
+    fn into_inner(self) -> f64 {
         self.0
     }
 }

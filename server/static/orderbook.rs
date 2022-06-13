@@ -7,8 +7,8 @@ pub struct OrderBook {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PriceSizePair {
-    #[prost(float, tag = "1")]
-    pub price: f32,
-    #[prost(float, tag = "2")]
-    pub size: f32,
+    #[prost(double, tag = "1")]
+    pub price: f64,
+    #[prost(double, tag = "2")]
+    pub size: f64,
 }

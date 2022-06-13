@@ -7,9 +7,9 @@ pub struct Order {
     pub order_id: u32,
     pub user_id: u32,
     pub pair: String,
-    pub allowance: f32,
-    pub amount: f32,
-    pub price: Option<f32>,
+    pub allowance: f64,
+    pub amount: f64,
+    pub price: Option<f64>,
     pub side: OrderSide,
     pub r#type: OrderType,
 }
@@ -18,10 +18,10 @@ impl Order {
     pub fn new(
         order_id: u32,
         user_id: u32,
-        allowance: f32,
+        allowance: f64,
         pair: String,
-        price: Option<f32>,
-        amount: f32,
+        price: Option<f64>,
+        amount: f64,
         side: OrderSide,
         r#type: OrderType,
     ) -> Self {
@@ -34,25 +34,6 @@ impl Order {
             amount,
             side,
             r#type,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct MatchedOrder {
-    pub order_id: u32,
-    pub user_id: u32,
-    pub price: f32,
-    pub amount: f32,
-}
-
-impl MatchedOrder {
-    pub fn new(order_id: u32, user_id: u32, price: f32, amount: f32) -> Self {
-        Self {
-            order_id,
-            user_id,
-            price,
-            amount,
         }
     }
 }
