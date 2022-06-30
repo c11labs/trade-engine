@@ -71,6 +71,7 @@ impl PriceLevel {
                     }
                 },
                 OrderType::Limit => min(init_order.amount, order.amount),
+                _ => min(init_order.amount, order.amount)
             };
 
             match init_order.side {

@@ -110,6 +110,7 @@ impl OrderBook {
                     matched = true;
                 }
             }
+            OrderType::StopLoss => {}
         };
 
         if matched {
@@ -165,6 +166,7 @@ impl OrderBook {
                     matched = true;
                 }
             }
+            OrderType::StopLoss => {}
         };
 
         if matched {
@@ -246,25 +248,6 @@ impl OrderBook {
     pub fn price_and_size(&self) -> (PriceSizePairs, PriceSizePairs) {
         (self.ask.price_and_size(), self.bid.price_and_size())
     }
-
-    /* pub fn best_price(&self, side: OrderSide) -> f64 {
-        match side {
-            OrderSide::Ask => self.ask.best_price(),
-            OrderSide::Bid => self.bid.best_price(),
-        }
-    } */
-
-    /* pub fn mid_price(&self) -> f64 {
-        (self.best_price(OrderSide::Ask) + self.best_price(OrderSide::Bid)) / 2.0
-    }
-
-    pub fn bid_ask_spread(&self) -> f64 {
-        self.best_price(OrderSide::Ask) - self.best_price(OrderSide::Bid)
-    } */
-
-    /* pub fn market_depth(&self) -> f64 {
-        self.worst_ask() - self.worst_bid()
-    } */
 
     pub fn pair(&self) -> &str {
         &self.pair
