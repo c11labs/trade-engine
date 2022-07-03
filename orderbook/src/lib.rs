@@ -110,7 +110,7 @@ impl OrderBook {
                     matched = true;
                 }
             }
-            OrderType::StopLoss => {}
+            // OrderType::StopLoss => {}
         };
 
         if matched {
@@ -166,7 +166,7 @@ impl OrderBook {
                     matched = true;
                 }
             }
-            OrderType::StopLoss => {}
+            // OrderType::StopLoss => {}
         };
 
         if matched {

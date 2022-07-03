@@ -2,6 +2,6 @@
 pub enum OrderType {
     Limit,
     Market,
-    StopLimit,
+    // StopLimit,
     // Oco
 }
